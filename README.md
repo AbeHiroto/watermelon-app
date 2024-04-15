@@ -1,9 +1,9 @@
 # bribe
 
-This is my first programing project.
-For further information, of course you've got to give me a bribe.
-Or simply visit my X (@AbeHirotoX).
-Thanks.
+This is my first programing project.<br>
+For further information, of course you've got to give me a bribe.<br>
+Or simply visit my X (@AbeHirotoX).<br>
+Thanks.<br>
 
-Hiroto
+Hiroto<br>
 https://twitter.com/AbeHirotoX
