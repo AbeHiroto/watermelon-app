@@ -5,7 +5,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:uni_links/uni_links.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'screens/invite.dart';
+
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -48,21 +51,64 @@ void main() {
   );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyApp extends StatefulWidget {
+  const MyApp({Key? key}) : super(key: key);
+
+  @override
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    initUniLinks();
+  }
+
+  Future<void> initUniLinks() async {
+    try {
+      final initialLink = await getInitialLink();
+      if (initialLink != null) {
+        _handleDeepLink(initialLink);
+      }
+
+      linkStream.listen((String? link) {
+        if (link != null) {
+          _handleDeepLink(link);
+        }
+      }, onError: (err) {
+        print('Failed to handle incoming links: $err');
+      });
+    } catch (e) {
+      print('Failed to handle initial link: $e');
+    }
+  }
+
+  void _handleDeepLink(String link) {
+    Uri uri = Uri.parse(link);
+    if (uri.pathSegments.length > 2 &&
+        uri.pathSegments[0] == 'challenger' &&
+        uri.pathSegments[1] == 'create') {
+      String uniqueToken = uri.pathSegments[2];
+      Navigator.of(context).pushNamed('/invite', arguments: uniqueToken);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => HomeState(),
-      child: MaterialApp(
-        title: 'BRIBE!',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-          useMaterial3: true,
-        ),
-        home: const HomeScreen(),
+    return MaterialApp(
+      title: 'BRIBE!',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        useMaterial3: true,
       ),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const HomeScreen(),
+        '/invite': (context) => InviteScreen(
+          uniqueToken: ModalRoute.of(context)!.settings.arguments as String,
+        ),
+      },
     );
   }
 }
