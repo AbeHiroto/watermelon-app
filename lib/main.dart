@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:uni_links/uni_links.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'screens/invite.dart';
+import 'screens/inviteScreen.dart';
 
 
 void main() {
@@ -225,7 +225,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildBody(BuildContext context, HomeState homeState) {
   // トークンが無い場合、またはルームや申請がない場合はルーム作成画面を表示
   if (!homeState.hasToken || (!homeState.hasRoom && !homeState.hasRequest)) {
-    return _buildRoomCreationScreen(context);
+    return _buildRoomCreateScreen(context);
   }
 
   // 申請が承認された場合は対戦画面を表示
@@ -235,7 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // 申請管理画面（申請があり、まだ承認されていない場合）
   if (homeState.hasRequest && homeState.replyStatus == "none") {
-    return _buildRequestListScreen(context);
+    return _buildMyRequestScreen(context);
   }
 
   // ルーム管理画面（ルームがあり、申請のステータスによって分岐）
@@ -246,7 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case "none":
       case "waiting":
       default:
-        return _buildRoomManagementScreen(context); // ルームが存在し、申請待ちまたは申請なし
+        return _buildMyRoomScreen(context); // ルームが存在し、申請待ちまたは申請なし
     }
   }
   return _buildErrorScreen(context);
@@ -257,15 +257,15 @@ Widget _buildErrorScreen(BuildContext context) {
     return Center(child: Text("ERROR AT '_buildBody'"));
 }
 
-Widget _buildRoomManagementScreen(BuildContext context) {
+Widget _buildMyRoomScreen(BuildContext context) {
   return Center(child: Text("ルーム管理画面"));
 }
 
-Widget _buildRequestListScreen(BuildContext context) {
-  return Center(child: Text("入室申請一覧"));
+Widget _buildMyRequestScreen(BuildContext context) {
+  return Center(child: Text("申請状況管理"));
 }
 
-Widget _buildRoomCreationScreen(BuildContext context) {
+Widget _buildRoomCreateScreen(BuildContext context) {
   return Center(child: Text("ルーム作成画面"));
 }
 
