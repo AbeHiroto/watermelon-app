@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:uni_links/uni_links.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'screens/inviteScreen.dart';
+import 'screens/invitation.dart';
 
 
 void main() {

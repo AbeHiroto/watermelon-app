@@ -104,4 +104,6 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
       ));
     }
   }
+
+  // ルーム削除のコードも作成
 }
