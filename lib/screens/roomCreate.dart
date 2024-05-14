@@ -26,7 +26,7 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
     });
 
     final response = await http.post(
-      Uri.parse('https://api.yourserver.com/create'),
+      Uri.parse('http://localhost:8080/create'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'nickname': _nicknameController.text,
@@ -42,7 +42,7 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('ゲームルームが正常に作成されました。'),
+        content: Text('招待URLが正常に作成されました。'),
       ));
       // 成功したら自動的にルーム管理画面に遷移
       Navigator.pushReplacement(
@@ -51,7 +51,7 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('ゲームルーム作成に失敗しました。'),
+        content: Text('招待URL作成に失敗しました。'),
       ));
     }
   }
@@ -60,7 +60,7 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('ルーム作成'),
+        title: Text('招待URL作成'),
       ),
       body: Center(
         child: _isLoading
@@ -73,14 +73,14 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
                     child: TextField(
                       controller: _nicknameController,
                       decoration: InputDecoration(
-                        labelText: 'ニックネーム',
+                        labelText: 'あなたのニックネーム',
                         border: OutlineInputBorder(),
                       ),
                     ),
                   ),
                   ElevatedButton(
                     onPressed: () => createRoom(context),
-                    child: Text('ゲームルームを作成する'),
+                    child: Text('招待URLを発行する'),
                   ),
                 ],
               ),

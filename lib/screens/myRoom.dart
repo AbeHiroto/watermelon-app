@@ -25,7 +25,7 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
 
   Future<void> fetchRoomInfo() async {
     final response = await http.get(
-      Uri.parse('https://api.yourserver.com/room/info'),
+      Uri.parse('http://localhost:8080/room/info'),
       headers: {'Authorization': 'Bearer your_jwt_token_here'},
     );
 
@@ -36,7 +36,7 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
         gameState = data['gameState'];
         createdAt = data['created_at'];
         challengers = data['challengers'];
-        inviteUrl = 'https://api.yourserver.com/challenger/create/${data['uniqueToken']}';
+        inviteUrl = 'http://localhost:8080/challenger/create/${data['uniqueToken']}';
         isLoading = false;
       });
     } else {
@@ -87,7 +87,7 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
 
   void replyToChallenge(String visitorId, String status) async {
     final response = await http.put(
-      Uri.parse('https://api.yourserver.com/request/reply'),
+      Uri.parse('http://localhost:8080/request/reply'),
       headers: {'Authorization': 'Bearer your_jwt_token_here', 'Content-Type': 'application/json'},
       body: jsonEncode({'visitorId': visitorId, 'status': status}),
     );

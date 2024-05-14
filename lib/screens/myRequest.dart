@@ -24,7 +24,7 @@ class _MyRequestScreenState extends State<MyRequestScreen> {
     final token = prefs.getString('jwtToken') ?? '';
 
     final response = await http.get(
-      Uri.parse('https://yourbackend.domain.com/request/info'),
+      Uri.parse('http://localhost:8080/request/info'),
       headers: {
         'Authorization': 'Bearer $token',
       },
@@ -42,7 +42,7 @@ class _MyRequestScreenState extends State<MyRequestScreen> {
     final token = prefs.getString('jwtToken') ?? '';
 
     final response = await http.delete(
-      Uri.parse('https://yourbackend.domain.com/request/disable'),
+      Uri.parse('hhttp://localhost:8080/request/disable'),
       headers: {
         'Authorization': 'Bearer $token',
       },

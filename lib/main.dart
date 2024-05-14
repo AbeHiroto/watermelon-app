@@ -8,6 +8,9 @@ import 'package:http/http.dart' as http;
 import 'package:uni_links/uni_links.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/invitation.dart';
+import 'screens/myRequest.dart';
+import 'screens/myRoom.dart';
+import 'screens/roomCreate.dart';
 
 
 void main() {
@@ -96,19 +99,22 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'BRIBE!',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-      ),
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const HomeScreen(),
-        '/invite': (context) => InviteScreen(
-          uniqueToken: ModalRoute.of(context)!.settings.arguments as String,
+    return ChangeNotifierProvider<HomeState>(
+      create: (_) => HomeState(),
+      child: MaterialApp(
+        title: 'bribe',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          useMaterial3: true,
         ),
-      },
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const HomeScreen(),
+          '/invite': (context) => InviteScreen(
+            uniqueToken: ModalRoute.of(context)!.settings.arguments as String,
+          ),
+        },
+      ),
     );
   }
 }
@@ -147,7 +153,7 @@ class HomeState with ChangeNotifier {
 
     try {
       final response = await http.get(
-        Uri.parse('https://api.yourserver.com/home'),
+        Uri.parse('http://localhost:8080/home'), // ホスト名は環境ごとに設定
         headers: {
           'Authorization': 'Bearer $jwtToken',
         },
@@ -225,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildBody(BuildContext context, HomeState homeState) {
   // トークンが無い場合、またはルームや申請がない場合はルーム作成画面を表示
   if (!homeState.hasToken || (!homeState.hasRoom && !homeState.hasRequest)) {
-    return _buildRoomCreateScreen(context);
+    return RoomCreateScreen();
   }
 
   // 申請が承認された場合は対戦画面を表示
@@ -235,7 +241,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // 申請管理画面（申請があり、まだ承認されていない場合）
   if (homeState.hasRequest && homeState.replyStatus == "none") {
-    return _buildMyRequestScreen(context);
+    return MyRequestScreen();
   }
 
   // ルーム管理画面（ルームがあり、申請のステータスによって分岐）
@@ -246,29 +252,17 @@ class _HomeScreenState extends State<HomeScreen> {
       case "none":
       case "waiting":
       default:
-        return _buildMyRoomScreen(context); // ルームが存在し、申請待ちまたは申請なし
+        return MyRoomScreen(); // ルームが存在し、申請待ちまたは申請なし
     }
   }
   return _buildErrorScreen(context);
 }
 
-// 以下のウィジェット生成メソッドはそれぞれの画面に対応するウィジェットを返します。
 Widget _buildErrorScreen(BuildContext context) {
     return Center(child: Text("ERROR AT '_buildBody'"));
 }
 
-Widget _buildMyRoomScreen(BuildContext context) {
-  return Center(child: Text("ルーム管理画面"));
-}
-
-Widget _buildMyRequestScreen(BuildContext context) {
-  return Center(child: Text("申請状況管理"));
-}
-
-Widget _buildRoomCreateScreen(BuildContext context) {
-  return Center(child: Text("ルーム作成画面"));
-}
-
+// ！仮設用ゲーム画面ウィジェット！
 Widget _buildGameScreen(BuildContext context) {
   return Center(child: Text("対戦画面"));
 }

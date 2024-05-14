@@ -48,7 +48,7 @@ class _InviteScreenState extends State<InviteScreen> {
       return;
     }
 
-    var url = 'https://api.yourserver.com/challenger/create/${widget.uniqueToken}';
+    var url = 'http://localhost:8080/challenger/create/${widget.uniqueToken}';
     var response = await http.post(Uri.parse(url), body: {
       'nickname': _nicknameController.text,  // ニックネームのデータを送信
     });
