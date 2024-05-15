@@ -168,9 +168,18 @@ class HomeState with ChangeNotifier {
         roomStatus = data['roomStatus'];
         notifyListeners();  // 通知してUIを更新
       } else {
-        _showErrorDialog(context, '読み込みを失敗しました。リロードしてください。');
+        hasToken = false;
+        hasRoom = false;
+        hasRequest = false;
+        replyStatus = "none";
+        roomStatus = "none";
       }
     } catch (e) {
+      hasToken = false;
+      hasRoom = false;
+      hasRequest = false;
+      replyStatus = "none";
+      roomStatus = "none";
       _showErrorDialog(context, '読み込みを失敗しました。リロードしてください。');
     } finally {
       isLoading = false;
