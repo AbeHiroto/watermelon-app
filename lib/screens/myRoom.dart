@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MyRoomScreen extends StatefulWidget {
   MyRoomScreen({Key? key}) : super(key: key);
@@ -10,12 +11,8 @@ class MyRoomScreen extends StatefulWidget {
 }
 
 class _MyRoomScreenState extends State<MyRoomScreen> {
-  List<dynamic> challengers = [];
-  String roomTheme = '';
-  String gameState = '';
-  String createdAt = '';
-  String inviteUrl = ''; // 招待URLを保持するための変数
   bool isLoading = true;
+  Map<String, dynamic>? roomData;
 
   @override
   void initState() {
@@ -24,72 +21,44 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
   }
 
   Future<void> fetchRoomInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jwtToken = prefs.getString('jwtToken') ?? '';
+
     final response = await http.get(
       Uri.parse('http://localhost:8080/room/info'),
-      headers: {'Authorization': 'Bearer your_jwt_token_here'},
+      headers: {
+        'Authorization': 'Bearer $jwtToken',
+      },
     );
 
     if (response.statusCode == 200) {
-      final data = json.decode(response.body);
       setState(() {
-        roomTheme = data['roomTheme'];
-        gameState = data['gameState'];
-        createdAt = data['created_at'];
-        challengers = data['challengers'];
-        inviteUrl = 'http://localhost:8080/challenger/create/${data['uniqueToken']}';
+        roomData = json.decode(response.body);
         isLoading = false;
       });
     } else {
       // エラーハンドリング
       print('Failed to load room info');
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('ルーム管理画面')),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                Text('テーマ: $roomTheme'),
-                Text('状態: $gameState'),
-                Text('作成日: $createdAt'),
-                Text('招待URL: $inviteUrl'),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: challengers.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(challengers[index]['challengerNickname']),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.check),
-                              onPressed: () => replyToChallenge(challengers[index]['id'], 'accepted'),
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.close),
-                              onPressed: () => replyToChallenge(challengers[index]['id'], 'rejected'),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-    );
-  }
-
   void replyToChallenge(String visitorId, String status) async {
+    final prefs = await SharedPreferences.getInstance();
+    final jwtToken = prefs.getString('jwtToken') ?? '';
+
     final response = await http.put(
       Uri.parse('http://localhost:8080/request/reply'),
-      headers: {'Authorization': 'Bearer your_jwt_token_here', 'Content-Type': 'application/json'},
-      body: jsonEncode({'visitorId': visitorId, 'status': status}),
+      headers: {
+        'Authorization': 'Bearer $jwtToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'visitorId': visitorId,
+        'status': status,
+      }),
     );
 
     if (response.statusCode == 200) {
@@ -98,12 +67,93 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
       ));
       fetchRoomInfo(); // 状態を更新するために部屋の情報を再取得
     } else {
-      // エラーハンドリング
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('返信に失敗しました'),
       ));
     }
   }
 
-  // ルーム削除のコードも作成
+  void deleteRoom() async {
+    final prefs = await SharedPreferences.getInstance();
+    final jwtToken = prefs.getString('jwtToken') ?? '';
+
+    final response = await http.delete(
+      Uri.parse('http://localhost:8080/room'),
+      headers: {
+        'Authorization': 'Bearer $jwtToken',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('ルームが正常に削除されました'),
+      ));
+      Navigator.pop(context); // ルーム削除後にホーム画面に戻る
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('ルームの削除に失敗しました'),
+      ));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('ルーム管理画面'),
+      ),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : roomData == null
+              ? Center(child: Text('ルーム情報を読み込めませんでした'))
+              : Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('テーマ: ${roomData!['roomTheme']}'),
+                          Text('状態: ${roomData!['gameState']}'),
+                          Text('作成日: ${roomData!['createdAt']}'),
+                          Text('招待URL: https://yourserver.com/challenger/create/${roomData!['uniqueToken']}'),
+                          SizedBox(height: 20),
+                          ElevatedButton(
+                            onPressed: deleteRoom,
+                            child: Text('ルームを削除する'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: (roomData!['challengers'] as List).length,
+                        itemBuilder: (context, index) {
+                          final challenger = roomData!['challengers'][index];
+                          return ListTile(
+                            title: Text(challenger['challengerNickname']),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  icon: Icon(Icons.check),
+                                  onPressed: () => replyToChallenge(challenger['visitorId'], 'accepted'),
+                                ),
+                                IconButton(
+                                  icon: Icon(Icons.close),
+                                  onPressed: () => replyToChallenge(challenger['visitorId'], 'rejected'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+    );
+  }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'myRoom.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RoomCreateScreen extends StatefulWidget {
   RoomCreateScreen({Key? key}) : super(key: key);
@@ -25,12 +26,18 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
       _isLoading = true;
     });
 
+    final prefs = await SharedPreferences.getInstance();
+    final jwtToken = prefs.getString('jwtToken') ?? '';
+
     final response = await http.post(
       Uri.parse('http://localhost:8080/create'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $jwtToken',
+      },
       body: jsonEncode({
         'nickname': _nicknameController.text,
-        // 他に必要なデータがあればここに追加します
+        'roomTheme': '3x3_biased', // ルームテーマを固定
       }),
     );
 
@@ -41,6 +48,13 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
     });
 
     if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      
+      // 新しいJWTトークンがレスポンスに含まれている場合、それを保存
+      if (data.containsKey('newToken')) {
+        await prefs.setString('jwtToken', data['newToken']);
+      }
+      
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('招待URLが正常に作成されました。'),
       ));
@@ -53,6 +67,13 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('招待URL作成に失敗しました。'),
       ));
+
+      final data = jsonDecode(response.body);
+
+      // 新しいJWTトークンがレスポンスに含まれている場合、それを保存
+      if (data.containsKey('newToken')) {
+        await prefs.setString('jwtToken', data['newToken']);
+      }
     }
   }
 
