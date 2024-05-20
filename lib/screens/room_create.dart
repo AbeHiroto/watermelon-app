@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'my_room.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class RoomCreateScreen extends StatefulWidget {
@@ -29,17 +28,19 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
     final prefs = await SharedPreferences.getInstance();
     final jwtToken = prefs.getString('jwtToken') ?? '';
 
+    final headers = {'Content-Type': 'application/json'};
+    if (jwtToken.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $jwtToken';
+    }
+
     final response = await http.post(
-      Uri.parse('http://localhost:8080/create'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $jwtToken',
-      },
-      body: jsonEncode({
-        'nickname': _nicknameController.text,
-        'roomTheme': '3x3_biased', // ルームテーマを固定
-      }),
-    );
+    Uri.parse('http://localhost:8080/create'),
+    headers: headers,
+    body: jsonEncode({
+      'nickname': _nicknameController.text,
+      'roomTheme': '3x3_biased', // ルームテーマを固定
+    }),
+  );
 
     if (!mounted) return;  // ここで画面がまだ存在しているか確認
 
@@ -58,11 +59,8 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('招待URLが正常に作成されました。'),
       ));
-      // 成功したら自動的にルーム管理画面に遷移
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => MyRoomScreen()),  // 修正: 直接 MyRoomScreen インスタンスを生成
-      );
+      // 成功したら自動的にホーム画面に遷移
+      Navigator.pushReplacementNamed(context, '/');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('招待URL作成に失敗しました。'),

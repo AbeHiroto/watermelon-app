@@ -42,7 +42,7 @@ class _MyRequestScreenState extends State<MyRequestScreen> {
     final token = prefs.getString('jwtToken') ?? '';
 
     final response = await http.delete(
-      Uri.parse('hhttp://localhost:8080/request/disable'),
+      Uri.parse('http://localhost:8080/request/disable'),
       headers: {
         'Authorization': 'Bearer $token',
       },
@@ -66,7 +66,7 @@ class _MyRequestScreenState extends State<MyRequestScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('My Requests'),
+        title: Text('My Request'),
       ),
       body: FutureBuilder<List<dynamic>>(
         future: _requestInfo,
@@ -91,7 +91,7 @@ class _MyRequestScreenState extends State<MyRequestScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: disableMyRequest,
-        tooltip: 'Disable All Requests',
+        tooltip: 'Disable My Requests',
         child: Icon(Icons.cancel),
       ),
     );

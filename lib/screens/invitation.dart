@@ -71,12 +71,14 @@ class _InviteScreenState extends State<InviteScreen> {
     final prefs = await SharedPreferences.getInstance();
     final jwtToken = prefs.getString('jwtToken') ?? '';
 
+    final headers = {'Content-Type': 'application/json'};
+    if (jwtToken.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $jwtToken';
+    }
+
     final response = await http.post(
       Uri.parse('http://localhost:8080/challenger/create/${widget.uniqueToken}'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $jwtToken',
-      },
+      headers: headers,
       body: jsonEncode({
         'nickname': _nicknameController.text,
         'subscriptionStatus': 'basic', // 課金ステータスが必要であれば設定
@@ -84,10 +86,16 @@ class _InviteScreenState extends State<InviteScreen> {
     );
 
     if (response.statusCode == 201) {
+      final data = jsonDecode(response.body);
+      if (data.containsKey('newToken')) {
+        await prefs.setString('jwtToken', data['newToken']);
+      }
+      
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('対戦申請が正常に送信されました。'),
       ));
-      Navigator.pop(context); // 対戦申請後に前の画面に戻る
+      // 対戦申請後にホーム画面に遷移
+      Navigator.pushReplacementNamed(context, '/');
     } else {
       setState(() {
         _isLoading = false;
