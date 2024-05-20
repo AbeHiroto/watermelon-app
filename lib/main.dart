@@ -8,9 +8,9 @@ import 'package:http/http.dart' as http;
 import 'package:uni_links/uni_links.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/invitation.dart';
-import 'screens/myRequest.dart';
-import 'screens/myRoom.dart';
-import 'screens/roomCreate.dart';
+import 'screens/my_request.dart';
+import 'screens/my_room.dart';
+import 'screens/room_create.dart';
 
 
 void main() {
@@ -89,10 +89,9 @@ class _MyAppState extends State<MyApp> {
 
   void _handleDeepLink(String link) {
     Uri uri = Uri.parse(link);
-    if (uri.pathSegments.length > 2 &&
-        uri.pathSegments[0] == 'challenger' &&
-        uri.pathSegments[1] == 'create') {
-      String uniqueToken = uri.pathSegments[2];
+    if (uri.pathSegments.length == 2 &&
+        uri.pathSegments[0] == 'play') {
+      String uniqueToken = uri.pathSegments[1];
       Navigator.of(context).pushNamed('/invite', arguments: uniqueToken);
     }
   }
