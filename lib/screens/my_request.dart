@@ -91,7 +91,7 @@ class _MyRequestScreenState extends State<MyRequestScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: disableMyRequest,
-        tooltip: 'Disable My Requests',
+        tooltip: 'Disable My Request',
         child: Icon(Icons.cancel),
       ),
     );

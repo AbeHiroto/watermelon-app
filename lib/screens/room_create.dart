@@ -27,51 +27,65 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
 
     final prefs = await SharedPreferences.getInstance();
     final jwtToken = prefs.getString('jwtToken') ?? '';
+    print('Loaded jwtToken: $jwtToken');
 
     final headers = {'Content-Type': 'application/json'};
     if (jwtToken.isNotEmpty) {
       headers['Authorization'] = 'Bearer $jwtToken';
     }
 
-    final response = await http.post(
-    Uri.parse('http://localhost:8080/create'),
-    headers: headers,
-    body: jsonEncode({
-      'nickname': _nicknameController.text,
-      'roomTheme': '3x3_biased', // ルームテーマを固定
-    }),
-  );
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:8080/create'),
+        headers: headers,
+        body: jsonEncode({
+          'nickname': _nicknameController.text,
+          'roomTheme': '3x3_biased', // ルームテーマを固定
+        }),
+      );
 
-    if (!mounted) return;  // ここで画面がまだ存在しているか確認
+      if (!mounted) return; // ここで画面がまだ存在しているか確認
 
-    setState(() {
-      _isLoading = false;
-    });
+      setState(() {
+        _isLoading = false;
+      });
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      
-      // 新しいJWTトークンがレスポンスに含まれている場合、それを保存
-      if (data.containsKey('newToken')) {
-        await prefs.setString('jwtToken', data['newToken']);
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        // 新しいJWTトークンがレスポンスに含まれている場合、それを保存
+        if (data.containsKey('newToken')) {
+          await prefs.setString('jwtToken', data['newToken']);
+          print('Saved newToken: ${data['newToken']}');
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('招待URLが正常に作成されました。'),
+        ));
+        // 成功したら自動的にホーム画面に遷移
+        Navigator.pushReplacementNamed(context, '/');
+      } else {
+        final data = jsonDecode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('招待URL作成に失敗しました。ステータスコード: ${response.statusCode}, メッセージ: ${data['error']}'),
+        ));
+
+        // 新しいJWTトークンがレスポンスに含まれている場合、それを保存
+        if (data.containsKey('newToken')) {
+          await prefs.setString('jwtToken', data['newToken']);
+        }
       }
-      
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      print('Error occurred: $e');
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('招待URLが正常に作成されました。'),
+        content: Text('リクエスト中にエラーが発生しました: $e'),
       ));
-      // 成功したら自動的にホーム画面に遷移
-      Navigator.pushReplacementNamed(context, '/');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('招待URL作成に失敗しました。'),
-      ));
-
-      final data = jsonDecode(response.body);
-
-      // 新しいJWTトークンがレスポンスに含まれている場合、それを保存
-      if (data.containsKey('newToken')) {
-        await prefs.setString('jwtToken', data['newToken']);
-      }
     }
   }
 

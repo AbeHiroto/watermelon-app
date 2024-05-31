@@ -69,30 +69,22 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> initUniLinks() async {
-    try {
-      final initialLink = await getInitialLink();
-      if (initialLink != null) {
-        _handleDeepLink(initialLink);
-      }
-
-      linkStream.listen((String? link) {
-        if (link != null) {
-          _handleDeepLink(link);
-        }
-      }, onError: (err) {
-        print('Failed to handle incoming links: $err');
-      });
-    } catch (e) {
-      print('Failed to handle initial link: $e');
+  try {
+    final initialLink = await getInitialLink();
+    if (initialLink != null) {
+      _handleDeepLink(initialLink);
     }
+  } catch (e) {
+    print('Failed to handle initial link: $e');
   }
+}
 
   void _handleDeepLink(String link) {
     Uri uri = Uri.parse(link);
-    if (uri.pathSegments.length == 2 &&
+    if (uri.pathSegments.length > 1 &&
         uri.pathSegments[0] == 'play') {
-      String uniqueToken = uri.pathSegments[1];
-      Navigator.of(context).pushNamed('/invite', arguments: uniqueToken);
+        String uniqueToken = uri.pathSegments[1];
+        Navigator.of(context).pushNamed('/invite', arguments: uniqueToken);
     }
   }
 
