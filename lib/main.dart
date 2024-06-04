@@ -203,6 +203,10 @@ class HomeState with ChangeNotifier {
     ),
   );
   }
+
+  void reloadHomeData(BuildContext context) {
+    fetchHomeData(context);
+  }
 }
 
 class HomeScreen extends StatefulWidget {

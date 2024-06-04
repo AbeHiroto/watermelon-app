@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class RoomCreateScreen extends StatefulWidget {
@@ -41,6 +42,7 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
         body: jsonEncode({
           'nickname': _nicknameController.text,
           'roomTheme': '3x3_biased', // ルームテーマを固定
+          'subscriptionStatus': 'paid',
         }),
       );
 
@@ -89,6 +91,10 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
     }
   }
 
+  void reloadHomeScreen(BuildContext context) {
+    Provider.of<HomeState>(context, listen: false).reloadHomeData(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -114,6 +120,11 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
                   ElevatedButton(
                     onPressed: () => createRoom(context),
                     child: Text('招待URLを発行する'),
+                  ),
+                  SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: reloadHomeScreen,
+                    child: Text('ホーム画面をリロード'),
                   ),
                 ],
               ),
