@@ -32,9 +32,19 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
     );
 
     if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      
+      // challengers が null の場合に空のリストに設定
+      for (var room in data['rooms']) {
+        room['challengers'] = room['challengers'] ?? [];
+      }
+
+      // デバッグ用にレスポンスデータをプリントアウト
+      print(data);
+
       setState(() {
-        roomData = json.decode(response.body);
-        isLoading = false;
+      roomData = data['rooms'].isNotEmpty ? data['rooms'][0] : null;
+      isLoading = false;
       });
     } else {
       // エラーハンドリング

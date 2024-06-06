@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../home_state.dart';
 
 class RoomCreateScreen extends StatefulWidget {
   RoomCreateScreen({Key? key}) : super(key: key);
@@ -123,7 +124,7 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
                   ),
                   SizedBox(height: 20),
                   ElevatedButton(
-                    onPressed: reloadHomeScreen,
+                    onPressed: () => reloadHomeScreen(context),
                     child: Text('ホーム画面をリロード'),
                   ),
                 ],
