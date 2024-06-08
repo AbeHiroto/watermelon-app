@@ -132,7 +132,7 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
                             onPressed: deleteRoom,
                             child: Text('ルームを削除する'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
+                              backgroundColor: Colors.blue,
                             ),
                           ),
                         ],

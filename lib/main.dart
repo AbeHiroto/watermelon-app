@@ -63,28 +63,37 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    initUniLinks();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initUniLinks();
+    });
   }
 
-  Future<void> initUniLinks() async {
-  try {
-    final initialLink = await getInitialLink();
-    if (initialLink != null) {
-      _handleDeepLink(initialLink);
+  Future<void> _initUniLinks() async {
+    try {
+      final initialLink = await getInitialLink();
+      if (initialLink != null) {
+        _handleDeepLink(initialLink);
+      }
+    } catch (e) {
+      print('Failed to handle initial link: $e');
     }
-  } catch (e) {
-    print('Failed to handle initial link: $e');
   }
-}
 
   void _handleDeepLink(String link) {
+    print('Deep link received: $link');
     Uri uri = Uri.parse(link);
-    if (uri.pathSegments.length > 1 &&
-        uri.pathSegments[0] == 'play') {
-        String uniqueToken = uri.pathSegments[1];
-        Navigator.of(context).pushNamed('/invite', arguments: uniqueToken);
+    if (uri.pathSegments.length > 1 && uri.pathSegments[0] == 'play') {
+      String uniqueToken = uri.pathSegments[1];
+      print('Unique token: $uniqueToken');
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(navigatorKey.currentContext!).pushNamed('/invite', arguments: uniqueToken);
+      });
+    } else {
+      print('Invalid link format');
     }
   }
+
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   Widget build(BuildContext context) {
@@ -92,6 +101,7 @@ class _MyAppState extends State<MyApp> {
       create: (_) => HomeState(),
       child: MaterialApp(
         title: 'bribe',
+        navigatorKey: navigatorKey,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
           useMaterial3: true,
