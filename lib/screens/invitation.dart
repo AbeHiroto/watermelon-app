@@ -69,7 +69,7 @@ class _InviteScreenState extends State<InviteScreen> {
     });
 
     final prefs = await SharedPreferences.getInstance();
-    final jwtToken = prefs.getString('jwtToken') ?? '';
+    String jwtToken = prefs.getString('jwtToken') ?? '';
 
     final headers = {'Content-Type': 'application/json'};
     if (jwtToken.isNotEmpty) {
@@ -81,7 +81,7 @@ class _InviteScreenState extends State<InviteScreen> {
       headers: headers,
       body: jsonEncode({
         'nickname': _nicknameController.text,
-        'subscriptionStatus': 'basic', // 課金ステータスが必要であれば設定
+        'subscriptionStatus': 'paid', // 課金ステータスが必要であれば設定
       }),
     );
 
@@ -89,6 +89,7 @@ class _InviteScreenState extends State<InviteScreen> {
       final data = jsonDecode(response.body);
       if (data.containsKey('newToken')) {
         await prefs.setString('jwtToken', data['newToken']);
+        jwtToken = data['newToken'];
       }
       
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -97,6 +98,13 @@ class _InviteScreenState extends State<InviteScreen> {
       // 対戦申請後にホーム画面に遷移
       Navigator.pushReplacementNamed(context, '/');
     } else {
+      final data = jsonDecode(response.body);
+
+      // 新しいJWTトークンがレスポンスに含まれている場合、それを保存
+      if (data.containsKey('newToken')) {
+        await prefs.setString('jwtToken', data['newToken']);
+      }
+
       setState(() {
         _isLoading = false;
       });

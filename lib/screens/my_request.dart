@@ -66,7 +66,7 @@ class _MyRequestScreenState extends State<MyRequestScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('My Request'),
+        title: Text('対戦リクエスト中/Requesting a match'),
       ),
       body: FutureBuilder<List<dynamic>>(
         future: _requestInfo,
@@ -81,7 +81,7 @@ class _MyRequestScreenState extends State<MyRequestScreen> {
               itemBuilder: (context, index) {
                 return ListTile(
                   title: Text(snapshot.data![index]['challengerNickname']),
-                  subtitle: Text('Room: ${snapshot.data![index]['roomCreator']} - Theme: ${snapshot.data![index]['roomTheme']}'),
+                  subtitle: Text('Opponent: ${snapshot.data![index]['roomCreator']} - Theme: ${snapshot.data![index]['roomTheme']}'),
                   trailing: Text(snapshot.data![index]['status']),
                 );
               },

@@ -55,9 +55,11 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
     }
   }
 
-  void replyToChallenge(String visitorId, String status) async {
+  void replyToChallenge(int visitorId, String status) async {
     final prefs = await SharedPreferences.getInstance();
     final jwtToken = prefs.getString('jwtToken') ?? '';
+
+    print('Replying to challenge with status: $status for visitorId: $visitorId');
 
     final response = await http.put(
       Uri.parse('http://localhost:8080/request/reply'),
@@ -110,7 +112,7 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('ルーム管理画面'),
+        title: Text('招待URL/Invitation URL'),
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
@@ -123,10 +125,10 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('テーマ: ${roomData!['roomTheme']}'),
-                          Text('状態: ${roomData!['gameState']}'),
-                          Text('作成日: ${roomData!['createdAt']}'),
-                          Text('招待URL: https://yourserver.com/challenger/create/${roomData!['uniqueToken']}'),
+                          Text('Theme: ${roomData!['roomTheme']}'),
+                          Text('State: ${roomData!['gameState']}'),
+                          Text('Available Since: ${roomData!['createdAt']}'),
+                          Text('URL: https://yourserver.com/challenger/create/${roomData!['uniqueToken']}'),
                           SizedBox(height: 20),
                           ElevatedButton(
                             onPressed: deleteRoom,
@@ -143,6 +145,7 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
                         itemCount: (roomData!['challengers'] as List).length,
                         itemBuilder: (context, index) {
                           final challenger = roomData!['challengers'][index];
+                          final visitorId = challenger['visitorId'] as int;  // visitorIdをintとして処理
                           return ListTile(
                             title: Text(challenger['challengerNickname']),
                             trailing: Row(
@@ -150,11 +153,17 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
                               children: [
                                 IconButton(
                                   icon: Icon(Icons.check),
-                                  onPressed: () => replyToChallenge(challenger['visitorId'], 'accepted'),
+                                  onPressed: () {
+                                    print('Accepted button pressed');
+                                    replyToChallenge(visitorId, 'accepted');
+                                  },
                                 ),
                                 IconButton(
                                   icon: Icon(Icons.close),
-                                  onPressed: () => replyToChallenge(challenger['visitorId'], 'rejected'),
+                                  onPressed: () {
+                                    print('Rejected button pressed');
+                                    replyToChallenge(visitorId, 'rejected');
+                                  },
                                 ),
                               ],
                             ),
