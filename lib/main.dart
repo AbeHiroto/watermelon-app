@@ -9,6 +9,7 @@ import 'screens/invitation.dart';
 import 'screens/my_request.dart';
 import 'screens/my_room.dart';
 import 'screens/room_create.dart';
+import 'screens/game.dart';
 
 
 void main() {
@@ -149,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // 申請が承認された場合は対戦画面を表示
   if (homeState.hasRequest && homeState.replyStatus == "accepted") {
-    return _buildGameScreen(context);
+    return GameScreen();
   }
 
   // 申請管理画面（申請があり、まだ承認されていない場合）
@@ -161,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
   if (homeState.hasRoom) {
     switch (homeState.roomStatus) {
       case "sent":
-        return _buildGameScreen(context); // 対戦が開始された場合
+        return GameScreen();
       case "none":
       case "waiting":
       default:
