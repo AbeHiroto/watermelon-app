@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
+import 'package:web_socket_channel/html.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class GameScreen extends StatefulWidget {
   const GameScreen({Key? key}) : super(key: key);
@@ -24,25 +26,55 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
-    _connectWebSocket();
+    _initializeSession();
   }
 
-  Future<void> _connectWebSocket() async {
+  Future<void> _initializeSession() async {
     final prefs = await SharedPreferences.getInstance();
     final jwtToken = prefs.getString('jwtToken') ?? '';
-    final sessionId = prefs.getString('sessionId') ?? '';
+    String sessionId = prefs.getString('sessionId') ?? '';
 
-    channel = IOWebSocketChannel.connect(
-      Uri.parse('ws://localhost:8080/ws'), // WebSocketサーバーのURL
-      headers: {
-        'Authorization': 'Bearer $jwtToken',
-        'SessionID': sessionId,
-      },
-    );
+    if (jwtToken.isNotEmpty) {
+      _connectWebSocket(jwtToken, sessionId);
+    } else {
+      print("JWT token is missing");
+    }
+  }
 
-    channel.stream.listen((data) {
-      handleMessage(data);
-    });
+  Future<void> _connectWebSocket(String jwtToken, String sessionId) async {
+    try {
+      if (kIsWeb) {
+        channel = HtmlWebSocketChannel.connect(
+          'ws://localhost:8080/ws', // ws://で始まるURLを使用
+        );
+      } else {
+        channel = IOWebSocketChannel.connect(
+          Uri.parse('ws://localhost:8080/ws'), // ws://で始まるURLを使用
+          headers: {
+            'Authorization': 'Bearer $jwtToken',
+            'SessionID': sessionId,
+          },
+        );
+      }
+
+      channel.stream.listen((data) {
+        handleMessage(data);
+      }, onError: (error) async {
+        final errorData = jsonDecode(error.toString());
+        if (errorData['sessionID'] != null) {
+          final newSessionId = errorData['sessionID'];
+          await saveSessionId(newSessionId);
+          _connectWebSocket(jwtToken, newSessionId);
+        }
+      });
+    } catch (e) {
+      print("Failed to connect to WebSocket: $e");
+    }
+  }
+
+  Future<void> saveSessionId(String sessionId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('sessionId', sessionId);
   }
 
   @override
