@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/html.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 class GameScreen extends StatefulWidget {
   const GameScreen({Key? key}) : super(key: key);
@@ -43,24 +43,18 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> _connectWebSocket(String jwtToken, String sessionId) async {
     try {
+      final url = 'ws://localhost:8080/ws?token=$jwtToken&sessionID=$sessionId';
       if (kIsWeb) {
-        channel = HtmlWebSocketChannel.connect(
-          'ws://localhost:8080/ws', // ws://で始まるURLを使用
-        );
+        channel = HtmlWebSocketChannel.connect(url);
       } else {
-        channel = IOWebSocketChannel.connect(
-          Uri.parse('ws://localhost:8080/ws'), // ws://で始まるURLを使用
-          headers: {
-            'Authorization': 'Bearer $jwtToken',
-            'SessionID': sessionId,
-          },
-        );
+        channel = IOWebSocketChannel.connect(Uri.parse(url));
       }
-
+  
       channel.stream.listen((data) {
         handleMessage(data);
       }, onError: (error) async {
         final errorData = jsonDecode(error.toString());
+        print("WebSocket connection error: $errorData");
         if (errorData['sessionID'] != null) {
           final newSessionId = errorData['sessionID'];
           await saveSessionId(newSessionId);
@@ -103,7 +97,6 @@ class _GameScreenState extends State<GameScreen> {
           }
         });
         break;
-      // 他のメッセージタイプの処理
       default:
         print("Unknown message type: ${decodedData['type']}");
     }
