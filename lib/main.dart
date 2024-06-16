@@ -14,6 +14,7 @@ import 'screens/game.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  
   ErrorWidget.builder = (FlutterErrorDetails details) {
     bool inDebug = false;
     assert(() {
@@ -32,6 +33,14 @@ void main() {
       );
     }
   };
+  // // FlutterError.onErrorを使用してエラーハンドリングを設定
+  // FlutterError.onError = (FlutterErrorDetails details) {
+  //   FlutterError.dumpErrorToConsole(details);
+  //   // 一般的なエラーハンドリング
+  //   if (details.exception is Error) {
+  //     throw details.exception;
+  //   }
+  // };
 
   runZonedGuarded(
     () async {

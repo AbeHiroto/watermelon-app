@@ -53,13 +53,7 @@ class _GameScreenState extends State<GameScreen> {
       channel.stream.listen((data) {
         handleMessage(data);
       }, onError: (error) async {
-        final errorData = jsonDecode(error.toString());
-        print("WebSocket connection error: $errorData");
-        if (errorData['sessionID'] != null) {
-          final newSessionId = errorData['sessionID'];
-          await saveSessionId(newSessionId);
-          _connectWebSocket(jwtToken, newSessionId);
-        }
+        print("WebSocket connection error: $error");
       });
     } catch (e) {
       print("Failed to connect to WebSocket: $e");
@@ -78,27 +72,42 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void handleMessage(dynamic data) {
-    final decodedData = jsonDecode(data);
-    switch (decodedData['type']) {
-      case 'gameState':
-        setState(() {
-          board = List<List<String>>.from(decodedData['board']);
-          currentTurn = decodedData['currentTurn'].toString();
-          refereeStatus = decodedData['refereeStatus'];
-          biasDegree = decodedData['biasDegree'];
-          bribeCounts = List<int>.from(decodedData['bribeCounts']);
-        });
-        break;
-      case 'chatMessage':
-        setState(() {
-          chatMessages.add(decodedData['message']);
-          if (chatMessages.length > 3) {
-            chatMessages.removeAt(0); // 最新の3件のみ表示
-          }
-        });
-        break;
-      default:
-        print("Unknown message type: ${decodedData['type']}");
+    try {
+      final decodedData = jsonDecode(data);
+      if (decodedData.containsKey('sessionID')) {
+        saveSessionId(decodedData['sessionID']);
+        print('New session ID saved: ${decodedData['sessionID']}');
+      } else {
+        switch (decodedData['type']) {
+          case 'gameState':
+            setState(() {
+              board = (decodedData['board'] as List<dynamic>)
+                .map((row) => (row as List<dynamic>).map((cell) => cell as String).toList())
+                .toList();
+              //board = List<List<String>>.from(decodedData['board']);
+              currentTurn = decodedData['currentTurn'].toString();
+              refereeStatus = decodedData['refereeStatus'];
+              biasDegree = decodedData['biasDegree'] ?? 0;
+              bribeCounts = (decodedData['bribeCounts'] as List<dynamic>)
+                .map((count) => count ?? 0) // null を 0 に置き換える
+                .cast<int>()
+                .toList();
+            });
+            break;
+          case 'chatMessage':
+            setState(() {
+              chatMessages.add(decodedData['message']);
+              if (chatMessages.length > 3) {
+                chatMessages.removeAt(0); // 最新の3件のみ表示
+              }
+            });
+            break;
+          default:
+            print("Unknown message type: ${decodedData['type']}");
+        }
+      }
+    } catch (e) {
+      print('Error handling message: $e');
     }
   }
 
