@@ -22,6 +22,7 @@ class _GameScreenState extends State<GameScreen> {
   int biasDegree = 0;
   List<int> bribeCounts = [0, 0];
   List<String> chatMessages = [];
+  TextEditingController _textController = TextEditingController();
 
   @override
   void initState() {
@@ -68,6 +69,7 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void dispose() {
     channel.sink.close();
+    _textController.dispose();
     super.dispose();
   }
 
@@ -85,7 +87,7 @@ class _GameScreenState extends State<GameScreen> {
                 .map((row) => (row as List<dynamic>).map((cell) => cell as String).toList())
                 .toList();
               //board = List<List<String>>.from(decodedData['board']);
-              currentTurn = decodedData['currentTurn'].toString();
+              currentTurn = decodedData['currentPlayer'] ?? "Unknown";
               refereeStatus = decodedData['refereeStatus'];
               biasDegree = decodedData['biasDegree'] ?? 0;
               bribeCounts = (decodedData['bribeCounts'] as List<dynamic>)
@@ -113,6 +115,7 @@ class _GameScreenState extends State<GameScreen> {
 
   void sendMessage(String message) {
     channel.sink.add(message);
+    _textController.clear();
   }
 
   void markCell(int x, int y) {
@@ -146,87 +149,118 @@ class _GameScreenState extends State<GameScreen> {
     return Scaffold(
       appBar: AppBar(title: Text("Game Screen")),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Text("Referee Status: $refereeStatus"),
-          SizedBox(height: 20),
-          Expanded(
+          Container(
+            height: 50, // 最上段の高さを固定
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Column(
-                  children: <Widget>[
-                    ElevatedButton(
-                      onPressed: bribeReferee,
-                      child: Text("Bribe Referee"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                      ),
-                    ),
-                  ],
-                ),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                        ),
-                        itemBuilder: (context, index) {
-                          final x = index ~/ 3;
-                          final y = index % 3;
-                          return GestureDetector(
-                            onTap: () {
-                              markCell(x, y);
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(border: Border.all()),
-                              child: Center(child: Text(board[x][y])),
-                            ),
-                          );
-                        },
-                        itemCount: 9,
-                        shrinkWrap: true,
-                      ),
-                      Text("Current Turn: $currentTurn"),
-                    ],
+                ElevatedButton(
+                  onPressed: bribeReferee,
+                  child: Text("Bribe"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
                   ),
                 ),
-                Column(
-                  children: <Widget>[
-                    ElevatedButton(
-                      onPressed: accuseOpponent,
-                      child: Text("Accuse Opponent"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                      ),
-                    ),
-                  ],
+                Text("Referee Status: $refereeStatus"),
+                ElevatedButton(
+                  onPressed: accuseOpponent,
+                  child: Text("Accuse"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                  ),
                 ),
               ],
             ),
           ),
           SizedBox(height: 20),
           Expanded(
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: 1, // 正方形のマス目を維持
+                child: Container(
+                  constraints: BoxConstraints(maxWidth: 200, maxHeight: 200), // マス目の最大サイズを設定
+                  child: GridView.builder(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                    ),
+                    itemBuilder: (context, index) {
+                      final x = index ~/ 3;
+                      final y = index % 3;
+                      return GestureDetector(
+                        onTap: () {
+                          markCell(x, y);
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(border: Border.all()),
+                          child: Center(child: Text(board[x][y])),
+                        ),
+                      );
+                    },
+                    itemCount: 9,
+                    shrinkWrap: true,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: 20),
+          Text("Current Turn: $currentTurn"),
+          SizedBox(height: 20),
+          Container(
+            height: 140, // チャットメッセージリストの高さを制限
             child: Column(
               children: <Widget>[
                 Expanded(
                   child: ListView.builder(
                     itemCount: chatMessages.length,
                     itemBuilder: (context, index) {
-                      return ListTile(
-                        title: Text(chatMessages[index]),
+                      return Row(
+                        mainAxisSize: MainAxisSize.min, // 背景の幅をメッセージの長さに応じて調整
+                        children: [
+                          Flexible(
+                            child: Container(
+                              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), // パディングを調整
+                              margin: EdgeInsets.symmetric(vertical: 2.0), // 各メッセージ間のマージンを設定
+                              decoration: BoxDecoration(
+                                color: Colors.blue[100], // 背景色を設定
+                                borderRadius: BorderRadius.circular(12.0), // 角を丸くする
+                              ),
+                              child: Text(
+                                chatMessages[index],
+                                style: TextStyle(
+                                  color: Colors.black, // 文字色を設定
+                                  fontSize: 16.0, // フォントサイズを設定
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       );
                     },
                   ),
                 ),
-                TextField(
-                  onSubmitted: (String input) {
-                    sendMessage(jsonEncode({"type": "chatMessage", "message": input}));
-                  },
-                  decoration: InputDecoration(
-                    hintText: "Send a message",
-                  ),
+                Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: TextField(
+                        controller: _textController,
+                        decoration: InputDecoration(
+                          hintText: "Send a message",
+                        ),
+                        onSubmitted: (String input) {
+                          sendMessage(jsonEncode({"type": "chatMessage", "message": input}));
+                        },
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.send),
+                      onPressed: () {
+                        sendMessage(jsonEncode({"type": "chatMessage", "message": _textController.text}));
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
