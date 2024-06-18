@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+//import 'package:flutter/services.dart'; // RawKeyboardListenerを使用するために必要
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
@@ -23,6 +24,7 @@ class _GameScreenState extends State<GameScreen> {
   List<int> bribeCounts = [0, 0];
   List<String> chatMessages = [];
   TextEditingController _textController = TextEditingController();
+  FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -70,11 +72,13 @@ class _GameScreenState extends State<GameScreen> {
   void dispose() {
     channel.sink.close();
     _textController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
   void handleMessage(dynamic data) {
     try {
+      // final decodedData = jsonDecode(utf8.decode(data as List<int>));
       final decodedData = jsonDecode(data);
       if (decodedData.containsKey('sessionID')) {
         saveSessionId(decodedData['sessionID']);
@@ -108,15 +112,28 @@ class _GameScreenState extends State<GameScreen> {
             print("Unknown message type: ${decodedData['type']}");
         }
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('Error handling message: $e');
+      print('Stack trace: $stackTrace');
     }
   }
 
   void sendMessage(String message) {
+  try {
+    // final encodedMessage = utf8.encode(jsonEncode({"type": "chatMessage", "message": message}));
+    print('Sending message: $message');
     channel.sink.add(message);
     _textController.clear();
+  } catch (e, stackTrace) {
+    print('Error sending message: $e');
+    print('Stack trace: $stackTrace');
   }
+}
+
+  // void sendMessage(String message) {
+  //   channel.sink.add(message);
+  //   _textController.clear();
+  // }
 
   void markCell(int x, int y) {
     final msg = jsonEncode({
@@ -143,6 +160,14 @@ class _GameScreenState extends State<GameScreen> {
     });
     sendMessage(msg);
   }
+
+  // void _handleKeyEvent(RawKeyEvent event) {
+  //   if (event.isKeyPressed(LogicalKeyboardKey.enter)) {
+  //     final message = jsonEncode({"type": "chatMessage", "message": _textController.text});
+  //     sendMessage(message);
+  //     _focusNode.requestFocus();
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -207,6 +232,7 @@ class _GameScreenState extends State<GameScreen> {
           ),
           SizedBox(height: 20),
           Text("Current Turn: $currentTurn"),
+          // Text("Current Turn: $currentTurn", style: TextStyle(fontFamily: 'NotoSansJP')),
           SizedBox(height: 20),
           Container(
             height: 140, // チャットメッセージリストの高さを制限
@@ -232,6 +258,7 @@ class _GameScreenState extends State<GameScreen> {
                                 style: TextStyle(
                                   color: Colors.black, // 文字色を設定
                                   fontSize: 16.0, // フォントサイズを設定
+                                  // fontFamily: 'NotoSansJP', // 日本語フォントを設定
                                 ),
                               ),
                             ),
@@ -245,13 +272,18 @@ class _GameScreenState extends State<GameScreen> {
                   children: <Widget>[
                     Expanded(
                       child: TextField(
-                        controller: _textController,
-                        decoration: InputDecoration(
-                          hintText: "Send a message",
-                        ),
-                        onSubmitted: (String input) {
+                      controller: _textController,
+                      decoration: InputDecoration(
+                        hintText: "Send a message",
+                      ),
+                      onSubmitted: (String input) {
+                        try {
                           sendMessage(jsonEncode({"type": "chatMessage", "message": input}));
-                        },
+                          //sendMessage(input);
+                        } catch (e) {
+                          print('Error on message submit: $e');
+                        }
+                      },
                       ),
                     ),
                     IconButton(

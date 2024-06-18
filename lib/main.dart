@@ -113,6 +113,7 @@ class _MyAppState extends State<MyApp> {
         title: 'bribe',
         navigatorKey: navigatorKey,
         theme: ThemeData(
+          fontFamily: 'NotoSansJP', // 日本語対応フォントファミリーの設定
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
           useMaterial3: true,
         ),
