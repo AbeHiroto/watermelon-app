@@ -22,9 +22,11 @@ class _GameScreenState extends State<GameScreen> {
   String refereeStatus = "normal";
   int biasDegree = 0;
   List<int> bribeCounts = [0, 0];
-  List<String> chatMessages = [];
+  List<Map<String, dynamic>> chatMessages = []; // メッセージと送信者IDを格納するリスト
+  String opponentStatus = "offline"; // 対戦相手のオンライン状況
   TextEditingController _textController = TextEditingController();
   FocusNode _focusNode = FocusNode();
+  int userId = 0; // ログイン中のユーザーIDを保持
 
   @override
   void initState() {
@@ -35,6 +37,7 @@ class _GameScreenState extends State<GameScreen> {
   Future<void> _initializeSession() async {
     final prefs = await SharedPreferences.getInstance();
     final jwtToken = prefs.getString('jwtToken') ?? '';
+    userId = prefs.getInt('userId') ?? 0;
     String sessionId = prefs.getString('sessionId') ?? '';
 
     if (jwtToken.isNotEmpty) {
@@ -62,11 +65,19 @@ class _GameScreenState extends State<GameScreen> {
       print("Failed to connect to WebSocket: $e");
     }
   }
-
-  Future<void> saveSessionId(String sessionId) async {
+  
+  Future<void> saveSessionIdAndUserId(String sessionId, int userId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('sessionId', sessionId);
+    await prefs.setInt('userId', userId);
+    setState(() {
+      this.userId = userId; // 受信後すぐにuserIdを設定
+    });
   }
+  // Future<void> saveSessionId(String sessionId) async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   await prefs.setString('sessionId', sessionId);
+  // }
 
   @override
   void dispose() {
@@ -80,9 +91,12 @@ class _GameScreenState extends State<GameScreen> {
     try {
       // final decodedData = jsonDecode(utf8.decode(data as List<int>));
       final decodedData = jsonDecode(data);
-      if (decodedData.containsKey('sessionID')) {
-        saveSessionId(decodedData['sessionID']);
-        print('New session ID saved: ${decodedData['sessionID']}');
+      if (decodedData.containsKey('sessionID') && decodedData.containsKey('userID')) {
+        saveSessionIdAndUserId(decodedData['sessionID'], decodedData['userID']);
+        print('New session ID and User ID saved: ${decodedData['sessionID']}, ${decodedData['userID']}');
+      // if (decodedData.containsKey('sessionID')) {
+      //   saveSessionId(decodedData['sessionID']);
+      //   print('New session ID saved: ${decodedData['sessionID']}');
       } else {
         switch (decodedData['type']) {
           case 'gameState':
@@ -102,10 +116,18 @@ class _GameScreenState extends State<GameScreen> {
             break;
           case 'chatMessage':
             setState(() {
-              chatMessages.add(decodedData['message']);
+              chatMessages.add({
+                "message": decodedData['message'],
+                "from": decodedData['from']
+              });
               if (chatMessages.length > 3) {
                 chatMessages.removeAt(0); // 最新の3件のみ表示
               }
+            });
+            break;
+          case 'onlineStatus':
+            setState(() {
+              opponentStatus = decodedData['isOnline'] ? "online" : "offline";
             });
             break;
           default:
@@ -129,11 +151,6 @@ class _GameScreenState extends State<GameScreen> {
     print('Stack trace: $stackTrace');
   }
 }
-
-  // void sendMessage(String message) {
-  //   channel.sink.add(message);
-  //   _textController.clear();
-  // }
 
   void markCell(int x, int y) {
     final msg = jsonEncode({
@@ -231,8 +248,31 @@ class _GameScreenState extends State<GameScreen> {
             ),
           ),
           SizedBox(height: 20),
-          Text("Current Turn: $currentTurn"),
-          // Text("Current Turn: $currentTurn", style: TextStyle(fontFamily: 'NotoSansJP')),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text("Current Turn: $currentTurn"),
+              SizedBox(width: 20),
+              RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: "Opponent: ",
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    TextSpan(
+                      text: opponentStatus,
+                      style: TextStyle(
+                        color: opponentStatus == "online" ? Colors.green : Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          // Text("Current Turn: $currentTurn"),
+          // // Text("Current Turn: $currentTurn", style: TextStyle(fontFamily: 'NotoSansJP')),
           SizedBox(height: 20),
           Container(
             height: 140, // チャットメッセージリストの高さを制限
@@ -242,19 +282,22 @@ class _GameScreenState extends State<GameScreen> {
                   child: ListView.builder(
                     itemCount: chatMessages.length,
                     itemBuilder: (context, index) {
+                      final messageData = chatMessages[index];
+                      final isMe = messageData["from"] == userId;
                       return Row(
+                        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min, // 背景の幅をメッセージの長さに応じて調整
                         children: [
                           Flexible(
                             child: Container(
                               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), // パディングを調整
-                              margin: EdgeInsets.symmetric(vertical: 2.0), // 各メッセージ間のマージンを設定
+                              margin: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), // 各メッセージ間のマージンを設定
                               decoration: BoxDecoration(
-                                color: Colors.blue[100], // 背景色を設定
+                                color: isMe ? Colors.blue[100] : Colors.grey[300], // 自分のメッセージは青、相手のメッセージはグレー
                                 borderRadius: BorderRadius.circular(12.0), // 角を丸くする
                               ),
                               child: Text(
-                                chatMessages[index],
+                                messageData["message"],
                                 style: TextStyle(
                                   color: Colors.black, // 文字色を設定
                                   fontSize: 16.0, // フォントサイズを設定
@@ -268,6 +311,36 @@ class _GameScreenState extends State<GameScreen> {
                     },
                   ),
                 ),
+                // Expanded(
+                //   child: ListView.builder(
+                //     itemCount: chatMessages.length,
+                //     itemBuilder: (context, index) {
+                //       return Row(
+                //         mainAxisSize: MainAxisSize.min, // 背景の幅をメッセージの長さに応じて調整
+                //         children: [
+                //           Flexible(
+                //             child: Container(
+                //               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), // パディングを調整
+                //               margin: EdgeInsets.symmetric(vertical: 2.0), // 各メッセージ間のマージンを設定
+                //               decoration: BoxDecoration(
+                //                 color: Colors.blue[100], // 背景色を設定
+                //                 borderRadius: BorderRadius.circular(12.0), // 角を丸くする
+                //               ),
+                //               child: Text(
+                //                 chatMessages[index],
+                //                 style: TextStyle(
+                //                   color: Colors.black, // 文字色を設定
+                //                   fontSize: 16.0, // フォントサイズを設定
+                //                   // fontFamily: 'NotoSansJP', // 日本語フォントを設定
+                //                 ),
+                //               ),
+                //             ),
+                //           ),
+                //         ],
+                //       );
+                //     },
+                //   ),
+                // ),
                 Row(
                   children: <Widget>[
                     Expanded(
