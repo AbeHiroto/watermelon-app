@@ -27,6 +27,11 @@ class _GameScreenState extends State<GameScreen> {
   TextEditingController _textController = TextEditingController();
   FocusNode _focusNode = FocusNode();
   int userId = 0; // ログイン中のユーザーIDを保持
+  final ScrollController _scrollController = ScrollController();
+  String winnerNickName = ""; // 勝者のニックネームを保持
+  int userWins = 0; // ユーザーの勝利数
+  int opponentWins = 0; // 対戦相手の勝利数
+  String roundStatus = ""; // ラウンド情報を保持
 
   @override
   void initState() {
@@ -74,10 +79,6 @@ class _GameScreenState extends State<GameScreen> {
       this.userId = userId; // 受信後すぐにuserIdを設定
     });
   }
-  // Future<void> saveSessionId(String sessionId) async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   await prefs.setString('sessionId', sessionId);
-  // }
 
   @override
   void dispose() {
@@ -94,9 +95,6 @@ class _GameScreenState extends State<GameScreen> {
       if (decodedData.containsKey('sessionID') && decodedData.containsKey('userID')) {
         saveSessionIdAndUserId(decodedData['sessionID'], decodedData['userID']);
         print('New session ID and User ID saved: ${decodedData['sessionID']}, ${decodedData['userID']}');
-      // if (decodedData.containsKey('sessionID')) {
-      //   saveSessionId(decodedData['sessionID']);
-      //   print('New session ID saved: ${decodedData['sessionID']}');
       } else {
         switch (decodedData['type']) {
           case 'gameState':
@@ -116,12 +114,12 @@ class _GameScreenState extends State<GameScreen> {
             break;
           case 'chatMessage':
             setState(() {
-              chatMessages.add({
+              chatMessages.insert(0, {
                 "message": decodedData['message'],
                 "from": decodedData['from']
               });
-              if (chatMessages.length > 3) {
-                chatMessages.removeAt(0); // 最新の3件のみ表示
+              if (chatMessages.length > 50) {
+                chatMessages.removeLast(); // 最新の50件のみ表示
               }
             });
             break;
@@ -129,6 +127,55 @@ class _GameScreenState extends State<GameScreen> {
             setState(() {
               opponentStatus = decodedData['isOnline'] ? "online" : "offline";
             });
+            break;
+          case 'gameResults':
+            setState(() {
+              board = (decodedData['board'] as List<dynamic>)
+                .map((row) => (row as List<dynamic>).map((cell) => cell as String).toList())
+                .toList();
+              refereeStatus = decodedData['refereeStatus'];
+              biasDegree = decodedData['biasDegree'] ?? 0;
+              bribeCounts = (decodedData['bribeCounts'] as List<dynamic>)
+                .map((count) => count ?? 0)
+                .cast<int>()
+                .toList();
+
+              // ラウンドステータスを取得
+              roundStatus = decodedData['status'];
+
+              // 勝利数を計算
+              userWins = 0;
+              opponentWins = 0;
+              final winners = decodedData['winners'] as List<dynamic>;
+              for (var winnerId in winners) {
+                if (winnerId == userId) {
+                  userWins++;
+                } else if (winnerId != 0) {
+                  opponentWins++;
+                }
+              }
+
+              // 勝者のニックネームを取得
+              if (winners.isNotEmpty && winners.last != 0) {
+                final winnerId = winners.last;
+                final winnerInfo = (decodedData['playersInfo'] as List<dynamic>)
+                  .firstWhere((player) => player['id'] == winnerId);
+                winnerNickName = winnerInfo['nickName'] ?? "Unknown";
+              } else {
+                winnerNickName = "Draw";
+              }
+              // // 勝者のニックネームを取得
+              // final winners = decodedData['winners'] as List<dynamic>;
+              // if (winners.isNotEmpty && winners[0] != 0) {
+              //   final winnerId = winners[0];
+              //   final winnerInfo = (decodedData['playersInfo'] as List<dynamic>)
+              //     .firstWhere((player) => player['id'] == winnerId);
+              //   winnerNickName = winnerInfo['nickName'] ?? "Unknown";
+              // } else {
+              //   winnerNickName = "Draw";
+              // }
+            });
+            showGameResultDialog();
             break;
           default:
             print("Unknown message type: ${decodedData['type']}");
@@ -170,7 +217,7 @@ class _GameScreenState extends State<GameScreen> {
     sendMessage(msg);
   }
 
-  void accuseOpponent() {
+  void accuseReferee() {
     final msg = jsonEncode({
       "type": "action",
       "actionType": "accuse",
@@ -178,12 +225,105 @@ class _GameScreenState extends State<GameScreen> {
     sendMessage(msg);
   }
 
-  // void _handleKeyEvent(RawKeyEvent event) {
-  //   if (event.isKeyPressed(LogicalKeyboardKey.enter)) {
-  //     final message = jsonEncode({"type": "chatMessage", "message": _textController.text});
-  //     sendMessage(message);
-  //     _focusNode.requestFocus();
-  //   }
+  void showGameResultDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Column(
+            children: [
+              Text(
+                roundStatus == "round1_finished"
+                    ? "Round 1 Finished!"
+                    : roundStatus == "round2_finished"
+                        ? "Round 2 Finished!"
+                        : "Game Over!",
+                style: TextStyle(fontSize: 16),
+              ),
+              SizedBox(height: 8),
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: "You ",
+                      style: TextStyle(fontSize: 16), // Smaller text for "You"
+                    ),
+                    TextSpan(
+                      text: "$userWins - $opponentWins",
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold), // Larger, bold text for the score
+                    ),
+                    TextSpan(
+                      text: " Rival",
+                      style: TextStyle(fontSize: 16), // Smaller text for "Rival"
+                    ),
+                  ],
+                ),
+              ),
+              // Text(
+              //   "You $userWins - $opponentWins Rival",
+              //   style: TextStyle(fontSize: 24),
+              // ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(
+                winnerNickName == "Draw"
+                    ? "It's a draw!"
+                    : "$winnerNickName wins!",
+                style: TextStyle(fontSize: 24),
+              ),
+              SizedBox(height: 16),
+              Text("Bribe Counts:"),
+              Text("You: ${bribeCounts[0]}"),
+              Text("Opponent: ${bribeCounts[1]}"),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text("Close"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+  // void showGameResultDialog() {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: Text("Game Over"),
+  //         content: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: <Widget>[
+  //             Text(
+  //               winnerNickName == "Draw"
+  //                   ? "It's a draw!"
+  //                   : "$winnerNickName wins!",
+  //               style: TextStyle(fontSize: 24),
+  //             ),
+  //             SizedBox(height: 16),
+  //             Text("Bribe Counts:"),
+  //             Text("You: ${bribeCounts[0]}"),
+  //             Text("Opponent: ${bribeCounts[1]}"),
+  //           ],
+  //         ),
+  //         actions: <Widget>[
+  //           TextButton(
+  //             child: Text("Close"),
+  //             onPressed: () {
+  //               Navigator.of(context).pop();
+  //             },
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
   // }
 
   @override
@@ -207,7 +347,7 @@ class _GameScreenState extends State<GameScreen> {
                 ),
                 Text("Referee Status: $refereeStatus"),
                 ElevatedButton(
-                  onPressed: accuseOpponent,
+                  onPressed: accuseReferee,
                   child: Text("Accuse"),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red,
@@ -280,6 +420,8 @@ class _GameScreenState extends State<GameScreen> {
               children: <Widget>[
                 Expanded(
                   child: ListView.builder(
+                    controller: _scrollController,
+                    reverse: true, // 最新メッセージを下に表示
                     itemCount: chatMessages.length,
                     itemBuilder: (context, index) {
                       final messageData = chatMessages[index];
@@ -311,36 +453,6 @@ class _GameScreenState extends State<GameScreen> {
                     },
                   ),
                 ),
-                // Expanded(
-                //   child: ListView.builder(
-                //     itemCount: chatMessages.length,
-                //     itemBuilder: (context, index) {
-                //       return Row(
-                //         mainAxisSize: MainAxisSize.min, // 背景の幅をメッセージの長さに応じて調整
-                //         children: [
-                //           Flexible(
-                //             child: Container(
-                //               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), // パディングを調整
-                //               margin: EdgeInsets.symmetric(vertical: 2.0), // 各メッセージ間のマージンを設定
-                //               decoration: BoxDecoration(
-                //                 color: Colors.blue[100], // 背景色を設定
-                //                 borderRadius: BorderRadius.circular(12.0), // 角を丸くする
-                //               ),
-                //               child: Text(
-                //                 chatMessages[index],
-                //                 style: TextStyle(
-                //                   color: Colors.black, // 文字色を設定
-                //                   fontSize: 16.0, // フォントサイズを設定
-                //                   // fontFamily: 'NotoSansJP', // 日本語フォントを設定
-                //                 ),
-                //               ),
-                //             ),
-                //           ),
-                //         ],
-                //       );
-                //     },
-                //   ),
-                // ),
                 Row(
                   children: <Widget>[
                     Expanded(
