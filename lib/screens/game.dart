@@ -133,8 +133,10 @@ class _GameScreenState extends State<GameScreen> {
               board = (decodedData['board'] as List<dynamic>)
                 .map((row) => (row as List<dynamic>).map((cell) => cell as String).toList())
                 .toList();
+              currentTurn = decodedData['currentPlayer'] ?? "Unknown";
               refereeStatus = decodedData['refereeStatus'];
               biasDegree = decodedData['biasDegree'] ?? 0;
+              roundStatus = decodedData['status'];
               bribeCounts = (decodedData['bribeCounts'] as List<dynamic>)
                 .map((count) => count ?? 0)
                 .cast<int>()
@@ -164,18 +166,9 @@ class _GameScreenState extends State<GameScreen> {
               } else {
                 winnerNickName = "Draw";
               }
-              // // 勝者のニックネームを取得
-              // final winners = decodedData['winners'] as List<dynamic>;
-              // if (winners.isNotEmpty && winners[0] != 0) {
-              //   final winnerId = winners[0];
-              //   final winnerInfo = (decodedData['playersInfo'] as List<dynamic>)
-              //     .firstWhere((player) => player['id'] == winnerId);
-              //   winnerNickName = winnerInfo['nickName'] ?? "Unknown";
-              // } else {
-              //   winnerNickName = "Draw";
-              // }
             });
-            showGameResultDialog();
+
+            showGameResultDialog(roundStatus);
             break;
           default:
             print("Unknown message type: ${decodedData['type']}");
@@ -225,7 +218,16 @@ class _GameScreenState extends State<GameScreen> {
     sendMessage(msg);
   }
 
-  void showGameResultDialog() {
+  void handleRetry(bool wantRetry) {
+    final msg = jsonEncode({
+      "type": "action",
+      "actionType": "retry",
+      "wantRetry": wantRetry,
+    });
+    sendMessage(msg);
+  }
+
+  void showGameResultDialog(String status) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -259,10 +261,6 @@ class _GameScreenState extends State<GameScreen> {
                   ],
                 ),
               ),
-              // Text(
-              //   "You $userWins - $opponentWins Rival",
-              //   style: TextStyle(fontSize: 24),
-              // ),
             ],
           ),
           content: Column(
@@ -277,7 +275,7 @@ class _GameScreenState extends State<GameScreen> {
               SizedBox(height: 16),
               Text("Bribe Counts:"),
               Text("You: ${bribeCounts[0]}"),
-              Text("Opponent: ${bribeCounts[1]}"),
+              Text("Rival: ${bribeCounts[1]}"),
             ],
           ),
           actions: <Widget>[
@@ -291,40 +289,24 @@ class _GameScreenState extends State<GameScreen> {
         );
       },
     );
+
+    // Add the retry message to chat
+    setState(() {
+      if (status == "round1_finished" || status == "round2_finished") {
+        chatMessages.insert(0, {
+          "message": "Play Next Round?",
+          "from": 0, // 0 indicates system message
+          "type": "system"
+        });
+      } else if (status == "finished") {
+        chatMessages.insert(0, {
+          "message": "This is the End of the Match!",
+          "from": 0,
+          "type": "system"
+        });
+      }
+    });
   }
-  // void showGameResultDialog() {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         title: Text("Game Over"),
-  //         content: Column(
-  //           mainAxisSize: MainAxisSize.min,
-  //           children: <Widget>[
-  //             Text(
-  //               winnerNickName == "Draw"
-  //                   ? "It's a draw!"
-  //                   : "$winnerNickName wins!",
-  //               style: TextStyle(fontSize: 24),
-  //             ),
-  //             SizedBox(height: 16),
-  //             Text("Bribe Counts:"),
-  //             Text("You: ${bribeCounts[0]}"),
-  //             Text("Opponent: ${bribeCounts[1]}"),
-  //           ],
-  //         ),
-  //         actions: <Widget>[
-  //           TextButton(
-  //             child: Text("Close"),
-  //             onPressed: () {
-  //               Navigator.of(context).pop();
-  //             },
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -420,39 +402,104 @@ class _GameScreenState extends State<GameScreen> {
               children: <Widget>[
                 Expanded(
                   child: ListView.builder(
-                    controller: _scrollController,
-                    reverse: true, // 最新メッセージを下に表示
+                    reverse: true,
                     itemCount: chatMessages.length,
                     itemBuilder: (context, index) {
                       final messageData = chatMessages[index];
                       final isMe = messageData["from"] == userId;
-                      return Row(
-                        mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min, // 背景の幅をメッセージの長さに応じて調整
+                      final isSystem = messageData["type"] == "system";
+                      return Column(
                         children: [
-                          Flexible(
-                            child: Container(
-                              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), // パディングを調整
-                              margin: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), // 各メッセージ間のマージンを設定
-                              decoration: BoxDecoration(
-                                color: isMe ? Colors.blue[100] : Colors.grey[300], // 自分のメッセージは青、相手のメッセージはグレー
-                                borderRadius: BorderRadius.circular(12.0), // 角を丸くする
-                              ),
-                              child: Text(
-                                messageData["message"],
-                                style: TextStyle(
-                                  color: Colors.black, // 文字色を設定
-                                  fontSize: 16.0, // フォントサイズを設定
-                                  // fontFamily: 'NotoSansJP', // 日本語フォントを設定
+                          Row(
+                            mainAxisAlignment: isSystem 
+                              ? MainAxisAlignment.center 
+                              : isMe 
+                                ? MainAxisAlignment.end 
+                                : MainAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.max,
+                            children: [
+                              Flexible(
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
+                                  margin: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
+                                  decoration: BoxDecoration(
+                                    color: isSystem
+                                        ? Colors.yellow[100]
+                                        : isMe
+                                          ? Colors.blue[100]
+                                          : Colors.grey[300],
+                                    borderRadius: BorderRadius.circular(12.0),
+                                  ),
+                                  child: Text(
+                                    messageData["message"],
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 16.0,
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
+                            ],
                           ),
+                          if (isSystem && messageData["message"] == "Play Next Round?")
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () {
+                                    handleRetry(true);
+                                  },
+                                  child: Text("Play"),
+                                ),
+                                SizedBox(width: 8),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    handleRetry(false);
+                                  },
+                                  child: Text("Quit"),
+                                ),
+                              ],
+                            ),
                         ],
                       );
                     },
                   ),
                 ),
+                // Expanded(
+                //   child: ListView.builder(
+                //     controller: _scrollController,
+                //     reverse: true, // 最新メッセージを下に表示
+                //     itemCount: chatMessages.length,
+                //     itemBuilder: (context, index) {
+                //       final messageData = chatMessages[index];
+                //       final isMe = messageData["from"] == userId;
+                //       return Row(
+                //         mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+                //         mainAxisSize: MainAxisSize.min, // 背景の幅をメッセージの長さに応じて調整
+                //         children: [
+                //           Flexible(
+                //             child: Container(
+                //               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), // パディングを調整
+                //               margin: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), // 各メッセージ間のマージンを設定
+                //               decoration: BoxDecoration(
+                //                 color: isMe ? Colors.blue[100] : Colors.grey[300], // 自分のメッセージは青、相手のメッセージはグレー
+                //                 borderRadius: BorderRadius.circular(12.0), // 角を丸くする
+                //               ),
+                //               child: Text(
+                //                 messageData["message"],
+                //                 style: TextStyle(
+                //                   color: Colors.black, // 文字色を設定
+                //                   fontSize: 16.0, // フォントサイズを設定
+                //                   // fontFamily: 'NotoSansJP', // 日本語フォントを設定
+                //                 ),
+                //               ),
+                //             ),
+                //           ),
+                //         ],
+                //       );
+                //     },
+                //   ),
+                // ),
                 Row(
                   children: <Widget>[
                     Expanded(
