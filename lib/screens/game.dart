@@ -105,11 +105,17 @@ class _GameScreenState extends State<GameScreen> {
               //board = List<List<String>>.from(decodedData['board']);
               currentTurn = decodedData['currentPlayer'] ?? "Unknown";
               refereeStatus = decodedData['refereeStatus'];
+              roundStatus = decodedData['status'];
               biasDegree = decodedData['biasDegree'] ?? 0;
               bribeCounts = (decodedData['bribeCounts'] as List<dynamic>)
                 .map((count) => count ?? 0) // null を 0 に置き換える
                 .cast<int>()
                 .toList();
+              
+              if (roundStatus == "finished") {
+                clearSessionId();
+                showGameFinishedDialog();
+              }
             });
             break;
           case 'chatMessage':
@@ -141,13 +147,10 @@ class _GameScreenState extends State<GameScreen> {
                 .map((count) => count ?? 0)
                 .cast<int>()
                 .toList();
-
-              // ラウンドステータスを取得
-              roundStatus = decodedData['status'];
-
               // 勝利数を計算
               userWins = 0;
               opponentWins = 0;
+
               final winners = decodedData['winners'] as List<dynamic>;
               for (var winnerId in winners) {
                 if (winnerId == userId) {
@@ -239,7 +242,7 @@ class _GameScreenState extends State<GameScreen> {
                     ? "Round 1 Finished!"
                     : roundStatus == "round2_finished"
                         ? "Round 2 Finished!"
-                        : "Game Over!",
+                        : "Game Finished! Thank You for Playing!",
                 style: TextStyle(fontSize: 16),
               ),
               SizedBox(height: 8),
@@ -306,6 +309,39 @@ class _GameScreenState extends State<GameScreen> {
         });
       }
     });
+  }
+
+  Future<void> clearSessionId() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('sessionId');
+  }
+
+
+  void showGameFinishedDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Game Finished!"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("Thank You for Playing!"),
+              SizedBox(height: 8),
+              Text("(Reload to Back to Home)"),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text("Close"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -448,6 +484,23 @@ class _GameScreenState extends State<GameScreen> {
                                 ElevatedButton(
                                   onPressed: () {
                                     handleRetry(true);
+                                    showDialog(
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return AlertDialog(
+                                          title: Text("Retry Request Sent!"),
+                                          content: Text("Waiting for your opponent's response."),
+                                          actions: <Widget>[
+                                            TextButton(
+                                              child: Text("OK"),
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
                                   },
                                   child: Text("Play"),
                                 ),
@@ -465,41 +518,6 @@ class _GameScreenState extends State<GameScreen> {
                     },
                   ),
                 ),
-                // Expanded(
-                //   child: ListView.builder(
-                //     controller: _scrollController,
-                //     reverse: true, // 最新メッセージを下に表示
-                //     itemCount: chatMessages.length,
-                //     itemBuilder: (context, index) {
-                //       final messageData = chatMessages[index];
-                //       final isMe = messageData["from"] == userId;
-                //       return Row(
-                //         mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-                //         mainAxisSize: MainAxisSize.min, // 背景の幅をメッセージの長さに応じて調整
-                //         children: [
-                //           Flexible(
-                //             child: Container(
-                //               padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), // パディングを調整
-                //               margin: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0), // 各メッセージ間のマージンを設定
-                //               decoration: BoxDecoration(
-                //                 color: isMe ? Colors.blue[100] : Colors.grey[300], // 自分のメッセージは青、相手のメッセージはグレー
-                //                 borderRadius: BorderRadius.circular(12.0), // 角を丸くする
-                //               ),
-                //               child: Text(
-                //                 messageData["message"],
-                //                 style: TextStyle(
-                //                   color: Colors.black, // 文字色を設定
-                //                   fontSize: 16.0, // フォントサイズを設定
-                //                   // fontFamily: 'NotoSansJP', // 日本語フォントを設定
-                //                 ),
-                //               ),
-                //             ),
-                //           ),
-                //         ],
-                //       );
-                //     },
-                //   ),
-                // ),
                 Row(
                   children: <Widget>[
                     Expanded(
