@@ -1,7 +1,81 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'screens/my_request.dart';
+import 'screens/my_room.dart';
+import 'screens/room_create.dart';
+import 'screens/game.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    final homeState = Provider.of<HomeState>(context, listen: false);
+    homeState.fetchHomeData(context);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final homeState = Provider.of<HomeState>(context);
+    return Scaffold(
+      appBar: AppBar(title: const Text("ホーム")),
+      body: homeState.isLoading
+          ? Center(child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // インジケータの色を青に設定
+            )
+            )
+          : _buildBody(context, homeState),
+    );
+  }
+
+  Widget _buildBody(BuildContext context, HomeState homeState) {
+  // トークンが無い場合、またはルームや申請がない場合はルーム作成画面を表示
+  if (!homeState.hasToken || (!homeState.hasRoom && !homeState.hasRequest)) {
+    return RoomCreateScreen();
+  }
+
+  // 申請が承認された場合は対戦画面を表示
+  if (homeState.hasRequest && homeState.replyStatus == "accepted") {
+    return GameScreen();
+  }
+
+  // 申請管理画面（申請があり、まだ承認されていない場合）
+  if (homeState.hasRequest && homeState.replyStatus == "none") {
+    return MyRequestScreen();
+  }
+
+  // ルーム管理画面（ルームがあり、申請のステータスによって分岐）
+  if (homeState.hasRoom) {
+    switch (homeState.roomStatus) {
+      case "sent":
+        return GameScreen();
+      case "none":
+      case "waiting":
+      default:
+        return MyRoomScreen(); // ルームが存在し、申請待ちまたは申請なし
+    }
+  }
+  return _buildErrorScreen(context);
+}
+
+Widget _buildErrorScreen(BuildContext context) {
+    return Center(child: Text("ERROR AT '_buildBody'"));
+}
+
+// ！仮設用ゲーム画面ウィジェット！
+Widget _buildGameScreen(BuildContext context) {
+  return Center(child: Text("対戦画面"));
+}
+}
 
 class HomeState with ChangeNotifier {
   bool isLoading = false; // ローディング状態のフラグ

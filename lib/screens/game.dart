@@ -6,6 +6,7 @@ import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/html.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../home_state.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({Key? key}) : super(key: key);
@@ -96,6 +97,7 @@ class _GameScreenState extends State<GameScreen> {
         saveSessionIdAndUserId(decodedData['sessionID'], decodedData['userID']);
         print('New session ID and User ID saved: ${decodedData['sessionID']}, ${decodedData['userID']}');
       } else {
+        List<Map<String, dynamic>> players = [];  // プレーヤーリストを定義
         switch (decodedData['type']) {
           case 'gameState':
             setState(() {
@@ -147,6 +149,12 @@ class _GameScreenState extends State<GameScreen> {
                 .map((count) => count ?? 0)
                 .cast<int>()
                 .toList();
+              players = (decodedData['playersInfo'] as List<dynamic>)
+                .map((player) => {
+                  'id': player['id'],
+                  'nickName': player['nickName']
+                })
+                .toList();
               // 勝利数を計算
               userWins = 0;
               opponentWins = 0;
@@ -171,7 +179,12 @@ class _GameScreenState extends State<GameScreen> {
               }
             });
 
-            showGameResultDialog(roundStatus);
+            if (roundStatus == "finished") {
+              clearSessionId();
+              showGameFinishedDialog();
+            }
+
+            showGameResultDialog(roundStatus, players);
             break;
           default:
             print("Unknown message type: ${decodedData['type']}");
@@ -230,7 +243,17 @@ class _GameScreenState extends State<GameScreen> {
     sendMessage(msg);
   }
 
-  void showGameResultDialog(String status) {
+  void showGameResultDialog(String status, List<Map<String, dynamic>> players) {
+    // ユーザーIDに基づいて賄賂回数を設定
+  int userBribeCount = 0;
+  int opponentBribeCount = 0;
+  if (players[0]['id'] == userId) {
+    userBribeCount = bribeCounts[0];
+    opponentBribeCount = bribeCounts[1];
+  } else if (players[1]['id'] == userId) {
+    userBribeCount = bribeCounts[1];
+    opponentBribeCount = bribeCounts[0];
+  }
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -277,8 +300,10 @@ class _GameScreenState extends State<GameScreen> {
               ),
               SizedBox(height: 16),
               Text("Bribe Counts:"),
-              Text("You: ${bribeCounts[0]}"),
-              Text("Rival: ${bribeCounts[1]}"),
+              Text("You: $userBribeCount"),
+              Text("Rival: $opponentBribeCount"),
+              // Text("You: ${bribeCounts[0]}"),
+              // Text("Rival: ${bribeCounts[1]}"),
             ],
           ),
           actions: <Widget>[
@@ -328,7 +353,7 @@ class _GameScreenState extends State<GameScreen> {
             children: [
               Text("Thank You for Playing!"),
               SizedBox(height: 8),
-              Text("(Reload to Back to Home)"),
+              Text("(Reload to Back Home)"),
             ],
           ),
           actions: <Widget>[
@@ -336,6 +361,11 @@ class _GameScreenState extends State<GameScreen> {
               child: Text("Close"),
               onPressed: () {
                 Navigator.of(context).pop();
+                // Navigator.pushAndRemoveUntil(
+                // context,
+                // MaterialPageRoute(builder: (context) => HomeScreen()),
+                // (Route<dynamic> route) => false,
+                // );
               },
             ),
           ],
