@@ -6,7 +6,6 @@ import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/html.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../home_state.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({Key? key}) : super(key: key);
@@ -265,7 +264,7 @@ class _GameScreenState extends State<GameScreen> {
                     ? "Round 1 Finished!"
                     : roundStatus == "round2_finished"
                         ? "Round 2 Finished!"
-                        : "Game Finished! Thank You for Playing!",
+                        : "Thank You for Playing!",
                 style: TextStyle(fontSize: 16),
               ),
               SizedBox(height: 8),
@@ -374,10 +373,55 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  void _clearJwtAndSessionId() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('jwtToken');
+    await prefs.remove('sessionId');
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('JWT and Session ID cleared'),
+    ));
+    Navigator.pushReplacementNamed(context, '/');
+  }
+
+  void _showResetConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Reset App?'),
+          content: Text('If you reset this App, your invitation URL and accepted request will be disposed. Are you sure?'),
+          actions: [
+            TextButton(
+              child: Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Reset'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _clearJwtAndSessionId();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Game Screen")),
+      appBar: AppBar(
+        title: Text("Game Screen"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.warning),
+            onPressed: _showResetConfirmationDialog,
+          ),
+        ],
+      ),
       body: Column(
         children: <Widget>[
           Container(

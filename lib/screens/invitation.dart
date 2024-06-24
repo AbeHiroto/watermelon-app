@@ -56,10 +56,10 @@ class _InviteScreenState extends State<InviteScreen> {
     }
   }
 
-  void submitChallenge(BuildContext context) async {
+  Future<void> submitChallenge(BuildContext context) async {
     if (_nicknameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('ニックネームを入力してください'),
+        content: Text('Enter Your Nickname'),
       ));
       return;
     }
@@ -76,48 +76,140 @@ class _InviteScreenState extends State<InviteScreen> {
       headers['Authorization'] = 'Bearer $jwtToken';
     }
 
-    final response = await http.post(
-      Uri.parse('http://localhost:8080/challenger/create/${widget.uniqueToken}'),
-      headers: headers,
-      body: jsonEncode({
-        'nickname': _nicknameController.text,
-        'subscriptionStatus': 'paid', // 課金ステータスが必要であれば設定
-      }),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse('http://localhost:8080/challenger/create/${widget.uniqueToken}'),
+        headers: headers,
+        body: jsonEncode({
+          'nickname': _nicknameController.text,
+          'subscriptionStatus': 'paid', // 課金ステータスが必要であれば設定
+        }),
+      );
 
-    if (response.statusCode == 201) {
-      final data = jsonDecode(response.body);
-      if (data.containsKey('newToken')) {
-        await prefs.setString('jwtToken', data['newToken']);
-        jwtToken = data['newToken'];
-      }
-      
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('対戦申請が正常に送信されました。'),
-      ));
-      // 対戦申請後にホーム画面に遷移
-      Navigator.pushReplacementNamed(context, '/');
-    } else {
+      if (!mounted) return;
+
       final data = jsonDecode(response.body);
 
-      // 新しいJWTトークンがレスポンスに含まれている場合、それを保存
+      // 新しいJWTトークンがレスポンスに含まれている場合、それを保存し、再度リクエストを送信
       if (data.containsKey('newToken')) {
         await prefs.setString('jwtToken', data['newToken']);
+        print('Saved newToken: ${data['newToken']}');
+        await submitChallenge(context); // 新しいトークンで再度リクエストを送信
+        return;
       }
 
+      if (response.statusCode == 201) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Request sent successfully'),
+        ));
+        // 対戦申請後にホーム画面に遷移
+        Navigator.pushReplacementNamed(context, '/');
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Fail to Send Request. Status Code: ${response.statusCode}, Message: ${data['error']}'),
+        ));
+      }
+    } catch (e) {
       setState(() {
         _isLoading = false;
       });
+      print('Error occurred: $e');
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('対戦申請に失敗しました。'),
+        content: Text('Error Occurred: $e'),
       ));
     }
+    // final response = await http.post(
+    //   Uri.parse('http://localhost:8080/challenger/create/${widget.uniqueToken}'),
+    //   headers: headers,
+    //   body: jsonEncode({
+    //     'nickname': _nicknameController.text,
+    //     'subscriptionStatus': 'paid', // 課金ステータスが必要であれば設定
+    //   }),
+    // );
+
+    // if (response.statusCode == 201) {
+    //   final data = jsonDecode(response.body);
+    //   if (data.containsKey('newToken')) {
+    //     await prefs.setString('jwtToken', data['newToken']);
+    //     print('Saved newToken: ${data['newToken']}');
+    //     jwtToken = data['newToken'];
+    //   }
+      
+    //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    //     content: Text('Request sent successfully'),
+    //   ));
+    //   // 対戦申請後にホーム画面に遷移
+    //   Navigator.pushReplacementNamed(context, '/');
+    // } else {
+    //   final data = jsonDecode(response.body);
+
+    //   // 新しいJWTトークンがレスポンスに含まれている場合、それを保存
+    //   if (data.containsKey('newToken')) {
+    //     await prefs.setString('jwtToken', data['newToken']);
+    //     print('Saved newToken: ${data['newToken']}');
+    //   }
+
+    //   setState(() {
+    //     _isLoading = false;
+    //   });
+    //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    //     content: Text('Fail to Send Request'),
+    //   ));
+    // }
+  }
+
+  void _clearJwtAndSessionId() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('jwtToken');
+    await prefs.remove('sessionId');
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('JWT and Session ID cleared'),
+    ));
+    Navigator.pushReplacementNamed(context, '/');
+  }
+
+  void _showResetConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Reset App?'),
+          content: Text('If you reset this App, your invitation URL and accepted request will be disposed. Are you sure?'),
+          actions: [
+            TextButton(
+              child: Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Reset'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _clearJwtAndSessionId();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('対戦申請')),
+      appBar: AppBar(
+        title: Text('Request Matching'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.warning),
+            onPressed: _showResetConfirmationDialog,
+          ),
+        ],
+      ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : Padding(
@@ -125,20 +217,20 @@ class _InviteScreenState extends State<InviteScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('ルーム作成者: $roomCreator'),
-                  Text('ルームテーマ: $roomTheme'),
+                  Text('Opponent: $roomCreator'),
+                  Text('Theme: $roomTheme'),
                   SizedBox(height: 20),
                   TextField(
                     controller: _nicknameController,
                     decoration: InputDecoration(
-                      labelText: 'あなたのニックネーム',
+                      labelText: 'Your Nickname',
                       border: OutlineInputBorder(),
                     ),
                   ),
                   SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () => submitChallenge(context),
-                    child: Text('対戦を申請する'),
+                    child: Text('Submit'),
                   ),
                 ],
               ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:flutter/services.dart';
 
 class MyRoomScreen extends StatefulWidget {
   MyRoomScreen({Key? key}) : super(key: key);
@@ -85,6 +87,32 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
     }
   }
 
+  void showDeleteConfirmationDialog() {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text("Dispose URL?"),
+        actions: <Widget>[
+          TextButton(
+            child: Text("Close"),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: Text("Dispose"),
+            onPressed: () {
+              Navigator.of(context).pop(); // モーダルを閉じる
+              deleteRoom(); // ルーム削除を実行
+            },
+          ),
+        ],
+      );
+    },
+  );
+  }
+
   void deleteRoom() async {
     final prefs = await SharedPreferences.getInstance();
     final jwtToken = prefs.getString('jwtToken') ?? '';
@@ -108,11 +136,61 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
     }
   }
 
+  void _copyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('URL copied to clipboard'),
+    ));
+  }
+
+  void _clearJwtAndSessionId() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('jwtToken');
+    await prefs.remove('sessionId');
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text('JWT and Session ID cleared'),
+    ));
+    Navigator.pushReplacementNamed(context, '/');
+  }
+
+  void _showResetConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Reset App?'),
+          content: Text('If you reset this App, your invitation URL and accepted request will be disposed. Are you sure?'),
+          actions: [
+            TextButton(
+              child: Text('Close'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Reset'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _clearJwtAndSessionId();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('招待URL/Invitation URL'),
+        title: Text('Invitation'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.warning),
+            onPressed: _showResetConfirmationDialog,
+          ),
+        ],
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
@@ -125,21 +203,38 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Theme: ${roomData!['roomTheme']}'),
-                          Text('State: ${roomData!['gameState']}'),
-                          Text('Available Since: ${roomData!['createdAt']}'),
-                          Text('URL: https://yourserver.com/challenger/create/${roomData!['uniqueToken']}'),
-                          SizedBox(height: 20),
-                          ElevatedButton(
-                            onPressed: deleteRoom,
-                            child: Text('ルームを削除する'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
+                          Center(
+                            child: Column(
+                              children: [
+                                QrImageView(
+                                  data: "https://demo.com/bribe/play/${roomData!['uniqueToken']}",
+                                  version: QrVersions.auto,
+                                  size: 240.0,
+                                ),
+                                SizedBox(height: 20),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text('https://demo.com/bribe/play/${roomData!['uniqueToken']}'),
+                                    IconButton(
+                                      icon: Icon(Icons.copy),
+                                      onPressed: () {
+                                        _copyToClipboard("https://demo.com/bribe/play/${roomData!['uniqueToken']}");
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.delete),
+                                      onPressed: showDeleteConfirmationDialog, // 確認ダイアログを表示
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
+                    Divider(), // 水平線
                     Expanded(
                       child: ListView.builder(
                         itemCount: (roomData!['challengers'] as List).length,
