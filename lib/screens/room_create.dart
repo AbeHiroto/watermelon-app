@@ -42,7 +42,8 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
       headers: headers,
       body: jsonEncode({
         'nickname': _nicknameController.text,
-        'roomTheme': '3x3_biased', // ルームテーマは固定
+        'roomTheme': '5x5_biased', // ルームテーマは固定
+        // 'roomTheme': '3x3_biased', // ルームテーマは固定
         'subscriptionStatus': 'paid',
       }),
     );

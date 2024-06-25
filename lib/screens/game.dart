@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-//import 'package:flutter/services.dart'; // RawKeyboardListenerを使用するために必要
+//import 'package:flutter/services.dart'; // RawKeyboardListenerを使用する場合
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
@@ -27,7 +27,7 @@ class _GameScreenState extends State<GameScreen> {
   TextEditingController _textController = TextEditingController();
   FocusNode _focusNode = FocusNode();
   int userId = 0; // ログイン中のユーザーIDを保持
-  final ScrollController _scrollController = ScrollController();
+  // final ScrollController _scrollController = ScrollController();
   String winnerNickName = ""; // 勝者のニックネームを保持
   int userWins = 0; // ユーザーの勝利数
   int opponentWins = 0; // 対戦相手の勝利数
@@ -196,16 +196,16 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void sendMessage(String message) {
-  try {
-    // final encodedMessage = utf8.encode(jsonEncode({"type": "chatMessage", "message": message}));
-    print('Sending message: $message');
-    channel.sink.add(message);
-    _textController.clear();
-  } catch (e, stackTrace) {
-    print('Error sending message: $e');
-    print('Stack trace: $stackTrace');
+    try {
+      // final encodedMessage = utf8.encode(jsonEncode({"type": "chatMessage", "message": message}));
+      print('Sending message: $message');
+      channel.sink.add(message);
+      _textController.clear();
+    } catch (e, stackTrace) {
+      print('Error sending message: $e');
+      print('Stack trace: $stackTrace');
+    }
   }
-}
 
   void markCell(int x, int y) {
     final msg = jsonEncode({
@@ -457,11 +457,11 @@ class _GameScreenState extends State<GameScreen> {
                   constraints: BoxConstraints(maxWidth: 200, maxHeight: 200), // マス目の最大サイズを設定
                   child: GridView.builder(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
+                      crossAxisCount: 5, // 列数の固定（3か5）
                     ),
                     itemBuilder: (context, index) {
-                      final x = index ~/ 3;
-                      final y = index % 3;
+                      final x = index ~/ 5; //ここも3か5
+                      final y = index % 5;
                       return GestureDetector(
                         onTap: () {
                           markCell(x, y);
@@ -472,7 +472,7 @@ class _GameScreenState extends State<GameScreen> {
                         ),
                       );
                     },
-                    itemCount: 9,
+                    itemCount: 25, // Themeによるマス目の総合数をここで指定（9か25）
                     shrinkWrap: true,
                   ),
                 ),
@@ -518,6 +518,7 @@ class _GameScreenState extends State<GameScreen> {
                       final messageData = chatMessages[index];
                       final isMe = messageData["from"] == userId;
                       final isSystem = messageData["type"] == "system";
+                      final isSystemChat = messageData["from"] == 0;
                       return Column(
                         children: [
                           Row(
@@ -534,6 +535,8 @@ class _GameScreenState extends State<GameScreen> {
                                   margin: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
                                   decoration: BoxDecoration(
                                     color: isSystem
+                                      ? Colors.yellow[100]
+                                      : isSystemChat
                                         ? Colors.yellow[100]
                                         : isMe
                                           ? Colors.blue[100]

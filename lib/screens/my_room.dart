@@ -184,7 +184,7 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Invitation'),
+        title: Text('Invitate Your Friend'),
         actions: [
           IconButton(
             icon: Icon(Icons.warning),
