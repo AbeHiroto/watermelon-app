@@ -410,92 +410,287 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  String _getRefereeImage(String status) {
+    switch (status) {
+      case "normal":
+        return "referee_normal.png";
+      case "angry":
+        return "referee_angry.png";
+      case "sad":
+        return "referee_sad.png";
+      default:
+        return "referee_normal.png";
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Game Screen"),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.warning),
-            onPressed: _showResetConfirmationDialog,
+  return Scaffold(
+    extendBodyBehindAppBar: true, // AppBarの背後に背景を拡張
+    appBar: AppBar(
+      title: Text("Game Screen"),
+      backgroundColor: Colors.transparent, // AppBarを透明に設定
+      elevation: 0, // AppBarの影を削除
+      actions: [
+        IconButton(
+          icon: Icon(Icons.warning),
+          onPressed: _showResetConfirmationDialog,
+        ),
+      ],
+    ),
+    backgroundColor: Colors.transparent, // Scaffoldの背景色を透明に設定
+    body: Stack(
+      children: [
+        // 背景画像を追加
+        Positioned.fill(
+          child: Image.asset(
+            _getRefereeImage(refereeStatus),
+            fit: BoxFit.cover,
           ),
-        ],
-      ),
-      body: Column(
-        children: <Widget>[
-          Container(
-            height: 50, // 最上段の高さを固定
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                ElevatedButton(
-                  onPressed: bribeReferee,
-                  child: Text("Bribe"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                  ),
-                ),
-                Text("Referee Status: $refereeStatus"),
-                ElevatedButton(
-                  onPressed: accuseReferee,
-                  child: Text("Accuse"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 20),
-          Expanded(
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: 1, // 正方形のマス目を維持
-                child: Container(
-                  constraints: BoxConstraints(maxWidth: 200, maxHeight: 200), // マス目の最大サイズを設定
-                  child: GridView.builder(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 5, // 列数の固定（3か5）
+        ),
+        SafeArea( // SafeAreaで上部のマージンを避ける
+          child: Column(
+            children: <Widget>[
+              Container(
+                height: 50, // 最上段の高さを固定
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    ElevatedButton(
+                      onPressed: bribeReferee,
+                      child: Text("Bribe"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                      ),
                     ),
-                    itemBuilder: (context, index) {
-                      final x = index ~/ 5; //ここも3か5
-                      final y = index % 5;
-                      return GestureDetector(
-                        onTap: () {
-                          markCell(x, y);
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(border: Border.all()),
-                          child: Center(child: Text(board[x][y])),
+                    Text("Referee Status: $refereeStatus"),
+                    ElevatedButton(
+                      onPressed: accuseReferee,
+                      child: Text("Accuse"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 20),
+              Expanded(
+                child: Center(
+                  child: AspectRatio(
+                    aspectRatio: 1, // 正方形のマス目を維持
+                    child: Container(
+                      constraints: BoxConstraints(maxWidth: 200, maxHeight: 200), // マス目の最大サイズを設定
+                      child: GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 5, // 列数の固定（3か5）
                         ),
-                      );
-                    },
-                    itemCount: 25, // Themeによるマス目の総合数をここで指定（9か25）
-                    shrinkWrap: true,
+                        itemBuilder: (context, index) {
+                          final x = index ~/ 5; //ここも3か5
+                          final y = index % 5;
+                          return GestureDetector(
+                            onTap: () {
+                              markCell(x, y);
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(border: Border.all()),
+                              child: Center(child: Text(board[x][y])),
+                            ),
+                          );
+                        },
+                        itemCount: 25, // Themeによるマス目の総合数をここで指定（9か25）
+                        shrinkWrap: true,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ),
-          SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text("Current Turn: $currentTurn"),
-              SizedBox(width: 20),
-              RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: "Opponent: ",
-                      style: TextStyle(color: Colors.black),
+              SizedBox(height: 10),
+              Container(
+                height: 180, // チャットメッセージリストの高さを制限
+                margin: const EdgeInsets.fromLTRB(4.0, 0, 4.0, 4.0),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.4), // 半透明のグレー背景
+                  borderRadius: BorderRadius.circular(12.0), // 角を丸くする
+                ),
+                child: Stack(
+                  children: <Widget>[
+                    ShaderMask(
+                      shaderCallback: (Rect bounds) {
+                        return LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [Colors.transparent, Colors.white.withOpacity(0.8), Colors.white.withOpacity(1.0)],
+                          stops: [0.0, 0.2, 1.0],
+                          // colors: [Colors.transparent, Colors.white.withOpacity(0.2)],
+                          // stops: [0.0, 0.3],
+                        ).createShader(bounds);
+                      },
+                      blendMode: BlendMode.dstIn,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 0),
+                        child: Column(
+                          children: <Widget>[
+                            Expanded(
+                              child: ListView.builder(
+                                padding: const EdgeInsets.only(top: 40.0),
+                                reverse: true,
+                                itemCount: chatMessages.length,
+                                itemBuilder: (context, index) {
+                                  final messageData = chatMessages[index];
+                                  final isMe = messageData["from"] == userId;
+                                  final isSystem = messageData["type"] == "system";
+                                  final isSystemChat = messageData["from"] == 0;
+                                  return Column(
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: isSystem 
+                                          ? MainAxisAlignment.center 
+                                          : isMe 
+                                            ? MainAxisAlignment.end 
+                                            : MainAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.max,
+                                        children: [
+                                          Flexible(
+                                            child: Container(
+                                              padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
+                                              margin: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
+                                              decoration: BoxDecoration(
+                                                color: isSystem
+                                                  ? Colors.yellow[100]
+                                                  : isSystemChat
+                                                    ? Colors.yellow[100]
+                                                    : isMe
+                                                      ? Colors.blue[100]
+                                                      : Colors.grey[300],
+                                                borderRadius: BorderRadius.circular(12.0),
+                                              ),
+                                              child: Text(
+                                                messageData["message"],
+                                                style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 16.0,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      if (isSystem && messageData["message"] == "Play Next Round?")
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                handleRetry(true);
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (BuildContext context) {
+                                                    return AlertDialog(
+                                                      title: Text("Retry Request Sent!"),
+                                                      content: Text("Waiting for your opponent's response."),
+                                                      actions: <Widget>[
+                                                        TextButton(
+                                                          child: Text("OK"),
+                                                          onPressed: () {
+                                                            Navigator.of(context).pop();
+                                                          },
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                              child: Text("Play"),
+                                            ),
+                                            SizedBox(width: 8),
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                handleRetry(false);
+                                              },
+                                              child: Text("Quit"),
+                                            ),
+                                          ],
+                                        ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                            Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: Container(
+                                    margin: const EdgeInsets.all(8.0), // 上下左右のマージンを設定
+                                    decoration: BoxDecoration(
+                                      color: Colors.white, // 背景色を白に設定
+                                      borderRadius: BorderRadius.circular(24.0), // 角を丸くする
+                                    ),
+                                    child: Row(
+                                      children: <Widget>[
+                                        Expanded(
+                                          child: TextField(
+                                            controller: _textController,
+                                            decoration: InputDecoration(
+                                              hintText: "Send a message",
+                                              border: InputBorder.none, // デフォルトのボーダーを削除
+                                              contentPadding: EdgeInsets.symmetric(horizontal: 16.0), // パディングを追加
+                                            ),
+                                            onSubmitted: (String input) {
+                                              try {
+                                                sendMessage(jsonEncode({"type": "chatMessage", "message": input}));
+                                              } catch (e) {
+                                                print('Error on message submit: $e');
+                                              }
+                                            },
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: Icon(Icons.send),
+                                          onPressed: () {
+                                            sendMessage(jsonEncode({"type": "chatMessage", "message": _textController.text}));
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    TextSpan(
-                      text: opponentStatus,
-                      style: TextStyle(
-                        color: opponentStatus == "online" ? Colors.green : Colors.red,
+                    Positioned(
+                      top: 2.0,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        color: Colors.transparent, // 背景を透明に設定
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text("Current Turn: $currentTurn"),
+                            SizedBox(width: 20),
+                            RichText(
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: "Opponent: ",
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                  TextSpan(
+                                    text: opponentStatus,
+                                    style: TextStyle(
+                                      color: opponentStatus == "online" ? Colors.green : Colors.red,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -503,129 +698,9 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ],
           ),
-          // Text("Current Turn: $currentTurn"),
-          // // Text("Current Turn: $currentTurn", style: TextStyle(fontFamily: 'NotoSansJP')),
-          SizedBox(height: 20),
-          Container(
-            height: 140, // チャットメッセージリストの高さを制限
-            child: Column(
-              children: <Widget>[
-                Expanded(
-                  child: ListView.builder(
-                    reverse: true,
-                    itemCount: chatMessages.length,
-                    itemBuilder: (context, index) {
-                      final messageData = chatMessages[index];
-                      final isMe = messageData["from"] == userId;
-                      final isSystem = messageData["type"] == "system";
-                      final isSystemChat = messageData["from"] == 0;
-                      return Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: isSystem 
-                              ? MainAxisAlignment.center 
-                              : isMe 
-                                ? MainAxisAlignment.end 
-                                : MainAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.max,
-                            children: [
-                              Flexible(
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
-                                  margin: EdgeInsets.symmetric(vertical: 2.0, horizontal: 4.0),
-                                  decoration: BoxDecoration(
-                                    color: isSystem
-                                      ? Colors.yellow[100]
-                                      : isSystemChat
-                                        ? Colors.yellow[100]
-                                        : isMe
-                                          ? Colors.blue[100]
-                                          : Colors.grey[300],
-                                    borderRadius: BorderRadius.circular(12.0),
-                                  ),
-                                  child: Text(
-                                    messageData["message"],
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 16.0,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (isSystem && messageData["message"] == "Play Next Round?")
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                ElevatedButton(
-                                  onPressed: () {
-                                    handleRetry(true);
-                                    showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AlertDialog(
-                                          title: Text("Retry Request Sent!"),
-                                          content: Text("Waiting for your opponent's response."),
-                                          actions: <Widget>[
-                                            TextButton(
-                                              child: Text("OK"),
-                                              onPressed: () {
-                                                Navigator.of(context).pop();
-                                              },
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    );
-                                  },
-                                  child: Text("Play"),
-                                ),
-                                SizedBox(width: 8),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    handleRetry(false);
-                                  },
-                                  child: Text("Quit"),
-                                ),
-                              ],
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: TextField(
-                      controller: _textController,
-                      decoration: InputDecoration(
-                        hintText: "Send a message",
-                      ),
-                      onSubmitted: (String input) {
-                        try {
-                          sendMessage(jsonEncode({"type": "chatMessage", "message": input}));
-                          //sendMessage(input);
-                        } catch (e) {
-                          print('Error on message submit: $e');
-                        }
-                      },
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.send),
-                      onPressed: () {
-                        sendMessage(jsonEncode({"type": "chatMessage", "message": _textController.text}));
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
 }

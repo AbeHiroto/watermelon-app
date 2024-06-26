@@ -27,7 +27,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final homeState = Provider.of<HomeState>(context);
     return Scaffold(
-      appBar: AppBar(title: const Text("ホーム")),
+      // appBar: AppBar(
+      //   title: const Text("ホーム"),
+      //   backgroundColor: Colors.transparent,
+      //   elevation: 0, // AppBarの影を削除
+      // ),
+      backgroundColor: Colors.transparent,
       body: homeState.isLoading
           ? Center(child: CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(Colors.blue), // インジケータの色を青に設定
