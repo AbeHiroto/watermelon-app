@@ -6,6 +6,7 @@ import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/html.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+//import 'package:flutter_svg/flutter_svg.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({Key? key}) : super(key: key);
@@ -452,8 +453,8 @@ class _GameScreenState extends State<GameScreen> {
           child: Column(
             children: <Widget>[
               Container(
-                height: 50, // 最上段の高さを固定
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                height: 80, // 最上段の高さを固定
+                padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
@@ -464,7 +465,43 @@ class _GameScreenState extends State<GameScreen> {
                         backgroundColor: Colors.green,
                       ),
                     ),
-                    Text("Referee Status: $refereeStatus"),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            CustomPaint(
+                              size: Size(270, 70), // 吹き出しのサイズを設定
+                              painter: SpeechBubblePainter(color: Colors.white.withOpacity(1.0)),
+                            ),
+                            Container(
+                              width: 200.0, // 固定幅を設定
+                              padding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0), // パディングを追加
+                              child: Column(
+                                children: [
+                                  Text(
+                                    "Current Turn is...",
+                                    style: TextStyle(
+                                      fontSize: 12.0, // やや小さいフォントサイズ
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    currentTurn,
+                                    style: TextStyle(
+                                      fontFamily: 'Roboto',
+                                      fontSize: 30.0,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                     ElevatedButton(
                       onPressed: accuseReferee,
                       child: Text("Accuse"),
@@ -475,7 +512,7 @@ class _GameScreenState extends State<GameScreen> {
                   ],
                 ),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 8), //デフォルトは20
               Expanded(
                 child: Center(
                   child: AspectRatio(
@@ -483,8 +520,10 @@ class _GameScreenState extends State<GameScreen> {
                     child: Container(
                       constraints: BoxConstraints(maxWidth: 200, maxHeight: 200), // マス目の最大サイズを設定
                       child: GridView.builder(
+                        padding: EdgeInsets.fromLTRB(4.0, 0, 4.0, 0.0),
+                        //padding: EdgeInsets.all(0.0),
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 5, // 列数の固定（3か5）
+                          crossAxisCount: 5, // 列数の固定
                         ),
                         itemBuilder: (context, index) {
                           final x = index ~/ 5; //ここも3か5
@@ -494,8 +533,43 @@ class _GameScreenState extends State<GameScreen> {
                               markCell(x, y);
                             },
                             child: Container(
-                              decoration: BoxDecoration(border: Border.all()),
-                              child: Center(child: Text(board[x][y])),
+                              margin: EdgeInsets.all(2.0), // パネル間のスペースを設定
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.4), // 半透明の白色背景
+                                borderRadius: BorderRadius.circular(4.0), // 角を丸くする
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.2), // 影の色
+                                    spreadRadius: 1, // 影の広がり
+                                    blurRadius: 5, // 影のぼかし
+                                    offset: Offset(2, 2), // 影の位置
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Container(
+                                  padding: EdgeInsets.all(12.0), // 必要に応じて内部のスペースを設定
+                                  //margin: EdgeInsets.all(8.0), // 必要に応じて外部のスペースを設定
+                                  child: board[x][y] == 'O'
+                                      ? Image.asset(
+                                          'assets/circle.png',
+                                          fit: BoxFit.fill, // フィット方法を設定
+                                        )
+                                      : board[x][y] == 'X'
+                                          ? Image.asset(
+                                              'assets/cross.png',
+                                              fit: BoxFit.fill, // フィット方法を設定
+                                            )
+                                          : Container(),
+                                ),
+                              ),
+                              // child: Center(
+                              //   child: board[x][y] == 'O'
+                              //       ? SvgPicture.asset('assets/circle.svg')
+                              //       : board[x][y] == 'X'
+                              //           ? SvgPicture.asset('assets/cross.svg')
+                              //           : Container(),
+                              // ),
                             ),
                           );
                         },
@@ -506,13 +580,21 @@ class _GameScreenState extends State<GameScreen> {
                   ),
                 ),
               ),
-              SizedBox(height: 10),
+              SizedBox(height: 20),
               Container(
                 height: 180, // チャットメッセージリストの高さを制限
                 margin: const EdgeInsets.fromLTRB(4.0, 0, 4.0, 4.0),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.4), // 半透明のグレー背景
+                  color: Colors.white.withOpacity(0.4), // 半透明の白背景
                   borderRadius: BorderRadius.circular(12.0), // 角を丸くする
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2), // 影の色
+                      spreadRadius: 1, // 影の広がり
+                      blurRadius: 5, // 影のぼかし
+                      offset: Offset(2, 2), // 影の位置
+                    ),
+                  ],
                 ),
                 child: Stack(
                   children: <Widget>[
@@ -520,8 +602,8 @@ class _GameScreenState extends State<GameScreen> {
                       shaderCallback: (Rect bounds) {
                         return LinearGradient(
                           begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.transparent, Colors.white.withOpacity(0.8), Colors.white.withOpacity(1.0)],
+                          end: Alignment(0.0, -0.6),
+                          colors: [Colors.transparent, Colors.white.withOpacity(0.2), Colors.white.withOpacity(1.0)],
                           stops: [0.0, 0.2, 1.0],
                           // colors: [Colors.transparent, Colors.white.withOpacity(0.2)],
                           // stops: [0.0, 0.3],
@@ -671,22 +753,24 @@ class _GameScreenState extends State<GameScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text("Current Turn: $currentTurn"),
-                            SizedBox(width: 20),
-                            RichText(
-                              text: TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: "Opponent: ",
-                                    style: TextStyle(color: Colors.black),
-                                  ),
-                                  TextSpan(
-                                    text: opponentStatus,
-                                    style: TextStyle(
-                                      color: opponentStatus == "online" ? Colors.green : Colors.red,
-                                    ),
-                                  ),
-                                ],
+                            // "Opponent: "テキスト
+                            Text(
+                              "Opponent: ",
+                              style: TextStyle(color: Colors.black),
+                            ),
+                            // opponentStatusテキストと背景
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
+                              margin: EdgeInsets.symmetric(vertical: 2.0),
+                              decoration: BoxDecoration(
+                                color: Colors.white, // 白の不透明背景
+                                borderRadius: BorderRadius.circular(12.0), // 角を丸くする
+                              ),
+                              child: Text(
+                                opponentStatus,
+                                style: TextStyle(
+                                  color: opponentStatus == "online" ? Colors.green : Colors.red,
+                                ),
                               ),
                             ),
                           ],
@@ -703,4 +787,44 @@ class _GameScreenState extends State<GameScreen> {
     ),
   );
 }
+}
+
+class SpeechBubblePainter extends CustomPainter {
+  final Color color;
+
+  SpeechBubblePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    var paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    var path = Path()
+      ..moveTo(0, size.height * 0.1)
+      ..lineTo(0, size.height * 0.9)
+      ..quadraticBezierTo(0, size.height, size.width * 0.1, size.height)
+      ..lineTo(size.width * 0.9, size.height)
+      ..quadraticBezierTo(size.width, size.height, size.width, size.height * 0.9)
+      ..lineTo(size.width, size.height * 0.1)
+      ..quadraticBezierTo(size.width, 0, size.width * 0.9, 0)
+      ..lineTo(size.width * 0.1, 0)
+      ..quadraticBezierTo(0, 0, 0, size.height * 0.1)
+      ..close();
+
+    // 吹き出しの尻尾を追加
+    path.moveTo(size.width * 0.7, size.height);
+    path.lineTo(size.width * 0.45, size.height + 10);
+    path.lineTo(size.width * 0.55, size.height);
+
+    // 影を描画
+    canvas.drawShadow(path, Colors.black.withOpacity(0.5), 4.0, true);
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return false;
+  }
 }
