@@ -79,6 +79,12 @@ flutter:
     - assets/circle.png
     - assets/cross.png
     - assets/bubble.png
+    - assets/bribe.png
+    - assets/bribe.svg
+    - assets/bribe_w_shadow.png
+    - assets/accuse.png
+    - assets/accuse.svg
+    - assets/accuse_w_shadow.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

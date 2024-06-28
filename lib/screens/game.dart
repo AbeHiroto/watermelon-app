@@ -15,8 +15,17 @@ class GameScreen extends StatefulWidget {
   _GameScreenState createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
+class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   late WebSocketChannel channel;
+  late AnimationController _bribeController;
+  late AnimationController _accuseController;
+  late AnimationController _bribeIdleController;
+  late AnimationController _accuseIdleController;
+  late Animation<double> _bribeScaleAnimation;
+  late Animation<double> _accuseScaleAnimation;
+  late Animation<double> _bribeRotationAnimation;
+  late Animation<double> _accuseMoveAnimation;
+
   String message = "";
   List<List<String>> board = List.generate(3, (_) => List.generate(3, (_) => ''));
   String currentTurn = "";
@@ -38,6 +47,42 @@ class _GameScreenState extends State<GameScreen> {
   void initState() {
     super.initState();
     _initializeSession();
+    
+    _bribeController = AnimationController(
+    vsync: this,
+    duration: Duration(milliseconds: 100),
+    );
+    _bribeScaleAnimation = Tween<double>(begin: 1.0, end: 0.8).animate(CurvedAnimation(
+      parent: _bribeController,
+      curve: Curves.easeInOut,
+    ));
+
+    _accuseController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 100),
+    );
+    _accuseScaleAnimation = Tween<double>(begin: 1.0, end: 0.8).animate(CurvedAnimation(
+      parent: _accuseController,
+      curve: Curves.easeInOut,
+    ));
+
+    _bribeIdleController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    )..repeat(reverse: true);
+    _bribeRotationAnimation = Tween<double>(begin: -0.087, end: 0.087).animate(CurvedAnimation(
+      parent: _bribeIdleController,
+      curve: Curves.easeInOut,
+    ));
+
+    _accuseIdleController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 2),
+    )..repeat(reverse: true);
+    _accuseMoveAnimation = Tween<double>(begin: 0, end: 10).animate(CurvedAnimation(
+      parent: _accuseIdleController,
+      curve: Curves.easeInOut,
+    ));
   }
 
   Future<void> _initializeSession() async {
@@ -86,7 +131,25 @@ class _GameScreenState extends State<GameScreen> {
     channel.sink.close();
     _textController.dispose();
     _focusNode.dispose();
+    _bribeController.dispose();
+    _accuseController.dispose();
+    _bribeIdleController.dispose();
+    _accuseIdleController.dispose();
     super.dispose();
+  }
+
+  void _onBribeButtonTap() {
+    _bribeController.forward().then((_) {
+      _bribeController.reverse();
+      bribeReferee();
+    });
+  }
+
+  void _onAccuseButtonTap() {
+    _accuseController.forward().then((_) {
+      _accuseController.reverse();
+      accuseReferee();
+    });
   }
 
   void handleMessage(dynamic data) {
@@ -453,18 +516,45 @@ class _GameScreenState extends State<GameScreen> {
           child: Column(
             children: <Widget>[
               Container(
-                height: 80, // 最上段の高さを固定
-                padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+                height: 80,
+                width: 480,
+                padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
-                    ElevatedButton(
-                      onPressed: bribeReferee,
-                      child: Text("Bribe"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
+                    GestureDetector(
+                      onTapDown: (_) => _bribeController.forward(),
+                      onTapUp: (_) => _onBribeButtonTap(),
+                      child: ScaleTransition(
+                        scale: _bribeScaleAnimation,
+                        child: AnimatedBuilder(
+                          animation: _bribeRotationAnimation,
+                          builder: (context, child) {
+                            return Transform.rotate(
+                              angle: _bribeRotationAnimation.value,
+                              child: child,
+                            );
+                          },
+                          child: Image.asset(
+                            'assets/bribe_w_shadow.png',
+                            width: 80,
+                            height: 80,
+                          ),
+                        ),
                       ),
                     ),
+                    // GestureDetector(
+                    //   onTapDown: (_) => _bribeController.forward(),
+                    //   onTapUp: (_) => _onBribeButtonTap(),
+                    //   child: ScaleTransition(
+                    //     scale: _bribeScaleAnimation,
+                    //     child: Image.asset(
+                    //       'assets/bribe_w_shadow.png',
+                    //       width: 80,
+                    //       height: 80,
+                    //     ),
+                    //   ),
+                    // ),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -472,18 +562,18 @@ class _GameScreenState extends State<GameScreen> {
                           alignment: Alignment.center,
                           children: [
                             CustomPaint(
-                              size: Size(270, 70), // 吹き出しのサイズを設定
+                              size: Size(240, 70),
                               painter: SpeechBubblePainter(color: Colors.white.withOpacity(1.0)),
                             ),
                             Container(
-                              width: 200.0, // 固定幅を設定
-                              padding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0), // パディングを追加
+                              width: 200.0,
+                              padding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
                               child: Column(
                                 children: [
                                   Text(
                                     "Current Turn is...",
                                     style: TextStyle(
-                                      fontSize: 12.0, // やや小さいフォントサイズ
+                                      fontSize: 12.0,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -502,13 +592,39 @@ class _GameScreenState extends State<GameScreen> {
                         ),
                       ],
                     ),
-                    ElevatedButton(
-                      onPressed: accuseReferee,
-                      child: Text("Accuse"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
+                    GestureDetector(
+                      onTapDown: (_) => _accuseController.forward(),
+                      onTapUp: (_) => _onAccuseButtonTap(),
+                      child: ScaleTransition(
+                        scale: _accuseScaleAnimation,
+                        child: AnimatedBuilder(
+                          animation: _accuseMoveAnimation,
+                          builder: (context, child) {
+                            return Transform.translate(
+                              offset: Offset(0, _accuseMoveAnimation.value),
+                              child: child,
+                            );
+                          },
+                          child: Image.asset(
+                            'assets/accuse_w_shadow.png',
+                            width: 80,
+                            height: 80,
+                          ),
+                        ),
                       ),
                     ),
+                    // GestureDetector(
+                    //   onTapDown: (_) => _accuseController.forward(),
+                    //   onTapUp: (_) => _onAccuseButtonTap(),
+                    //   child: ScaleTransition(
+                    //     scale: _accuseScaleAnimation,
+                    //     child: Image.asset(
+                    //       'assets/accuse_w_shadow.png',
+                    //       width: 80,
+                    //       height: 80,
+                    //     ),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),
@@ -563,13 +679,6 @@ class _GameScreenState extends State<GameScreen> {
                                           : Container(),
                                 ),
                               ),
-                              // child: Center(
-                              //   child: board[x][y] == 'O'
-                              //       ? SvgPicture.asset('assets/circle.svg')
-                              //       : board[x][y] == 'X'
-                              //           ? SvgPicture.asset('assets/cross.svg')
-                              //           : Container(),
-                              // ),
                             ),
                           );
                         },
@@ -585,7 +694,7 @@ class _GameScreenState extends State<GameScreen> {
                 height: 180, // チャットメッセージリストの高さを制限
                 margin: const EdgeInsets.fromLTRB(4.0, 0, 4.0, 4.0),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.4), // 半透明の白背景
+                  color: Colors.white.withOpacity(0.7), // 半透明の白背景
                   borderRadius: BorderRadius.circular(12.0), // 角を丸くする
                   boxShadow: [
                     BoxShadow(
@@ -801,15 +910,17 @@ class SpeechBubblePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     var path = Path()
-      ..moveTo(0, size.height * 0.1)
-      ..lineTo(0, size.height * 0.9)
-      ..quadraticBezierTo(0, size.height, size.width * 0.1, size.height)
-      ..lineTo(size.width * 0.9, size.height)
-      ..quadraticBezierTo(size.width, size.height, size.width, size.height * 0.9)
-      ..lineTo(size.width, size.height * 0.1)
-      ..quadraticBezierTo(size.width, 0, size.width * 0.9, 0)
-      ..lineTo(size.width * 0.1, 0)
-      ..quadraticBezierTo(0, 0, 0, size.height * 0.1)
+      ..moveTo(size.width * 0.05, 0) // Start at the top-left corner with a small inset for the curve
+      ..lineTo(0, size.height * 0.05)
+      ..quadraticBezierTo(0, 0, size.width * 0.05, 0) // Top-left corner curve
+      ..lineTo(size.width * 0.95, 0)
+      ..quadraticBezierTo(size.width, 0, size.width, size.height * 0.05) // Top-right corner curve
+      ..lineTo(size.width, size.height * 0.95)
+      ..quadraticBezierTo(size.width, size.height, size.width * 0.95, size.height) // Bottom-right corner curve
+      ..lineTo(size.width * 0.05, size.height)
+      ..quadraticBezierTo(0, size.height, 0, size.height * 0.95) // Bottom-left corner curve
+      ..lineTo(0, size.height * 0.05)
+      ..quadraticBezierTo(0, 0, size.width * 0.05, 0) // Top-left corner curve
       ..close();
 
     // 吹き出しの尻尾を追加
