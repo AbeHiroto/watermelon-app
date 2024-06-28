@@ -624,12 +624,41 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   return Scaffold(
     extendBodyBehindAppBar: true, // AppBarの背後に背景を拡張
     appBar: AppBar(
-      title: Text("Game Screen"),
+      title: IconButton(
+        icon: Icon(Icons.info_outline),
+        onPressed: () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Text('App Title'),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    // Text('www.abehiroto.com'),
+                    // SizedBox(height: 8),
+                    Text('© 2024 Hiroto Abe. All rights reserved.'),
+                  ],
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    child: Text('Close'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+      // title: Text("Game Screen"),
       backgroundColor: Colors.transparent, // AppBarを透明に設定
       elevation: 0, // AppBarの影を削除
       actions: [
         IconButton(
-          icon: Icon(Icons.warning),
+          icon: Icon(Icons.warning_amber_outlined),
           onPressed: _showResetConfirmationDialog,
         ),
       ],
