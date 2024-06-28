@@ -5,8 +5,9 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/html.dart';
 import 'dart:convert';
+import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
-//import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class GameScreen extends StatefulWidget {
   const GameScreen({Key? key}) : super(key: key);
@@ -17,14 +18,29 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   late WebSocketChannel channel;
+
+  //各種アニメーション設定
   late AnimationController _bribeController;
   late AnimationController _accuseController;
   late AnimationController _bribeIdleController;
   late AnimationController _accuseIdleController;
+  late AnimationController _bribeAnimationController;
+  late AnimationController _accuseAnimationController;
+
   late Animation<double> _bribeScaleAnimation;
   late Animation<double> _accuseScaleAnimation;
   late Animation<double> _bribeRotationAnimation;
   late Animation<double> _accuseMoveAnimation;
+
+  late Animation<double> _bribeBackgroundScaleAnimation;
+  late Animation<double> _accuseBackgroundScaleAnimation;
+  // late Animation<double> _shakeAnimation;
+
+  late String selectedBribeImage;
+  late String selectedAccuseImage;
+
+  bool _isBribeAnimationVisible = false;
+  bool _isAccuseAnimationVisible = false;
 
   String message = "";
   List<List<String>> board = List.generate(3, (_) => List.generate(3, (_) => ''));
@@ -43,14 +59,27 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   int opponentWins = 0; // 対戦相手の勝利数
   String roundStatus = ""; // ラウンド情報を保持
 
+  // 賄賂と糾弾のアニメーション画像をランダムでこの中から決定
+  final List<String> bribeImages = [
+    'assets/bribe.svg',
+  ];
+
+  final List<String> accuseImages = [
+    'assets/accuse.svg',
+  ];
+
   @override
   void initState() {
     super.initState();
     _initializeSession();
-    
+
+    final random = Random();
+    selectedBribeImage = bribeImages[random.nextInt(bribeImages.length)];
+    selectedAccuseImage = accuseImages[random.nextInt(accuseImages.length)];
+
     _bribeController = AnimationController(
-    vsync: this,
-    duration: Duration(milliseconds: 100),
+      vsync: this,
+      duration: Duration(milliseconds: 100),
     );
     _bribeScaleAnimation = Tween<double>(begin: 1.0, end: 0.8).animate(CurvedAnimation(
       parent: _bribeController,
@@ -83,6 +112,72 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       parent: _accuseIdleController,
       curve: Curves.easeInOut,
     ));
+
+    // Bribe Animation Controller for Background Animation
+    _bribeAnimationController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 1),
+    )..addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        setState(() {
+          _isBribeAnimationVisible = false;
+        });
+      }
+    });
+    _bribeBackgroundScaleAnimation = Tween<double>(begin: 12.0, end: 0.0).animate(CurvedAnimation(
+      parent: _bribeAnimationController,
+      curve: Curves.easeIn,
+    ));
+    // _bribeAnimationController = AnimationController(
+    //   vsync: this,
+    //   duration: Duration(seconds: 1),
+    // );
+    // _bribeBackgroundScaleAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(CurvedAnimation(
+    //   parent: _bribeAnimationController,
+    //   curve: Curves.easeIn,
+    // ));
+
+    // Accuse Animation Controller for Background Animation
+    _accuseAnimationController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 1),
+    )..addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        setState(() {
+          _isAccuseAnimationVisible = false;
+          // _shakeAnimation = Tween<double>(begin: 0.0, end: 0.0).animate(
+          //   CurvedAnimation(
+          //     parent: _accuseAnimationController,
+          //     curve: Curves.linear,
+          //   ),
+          // );
+        });
+      }
+    });
+    _accuseBackgroundScaleAnimation = Tween<double>(begin: 12.0, end: 0.0).animate(CurvedAnimation(
+      parent: _accuseAnimationController,
+      curve: Curves.easeIn,
+    ));
+    // _shakeAnimation = Tween<double>(begin: 0.0, end: 10.0).animate(
+    //   CurvedAnimation(
+    //     parent: _accuseAnimationController,
+    //     curve: Interval(0.0, 0.5, curve: Curves.elasticIn),
+    //   ),
+    // );
+    // _accuseAnimationController = AnimationController(
+    //   vsync: this,
+    //   duration: Duration(seconds: 1),
+    // );
+    // _accuseBackgroundScaleAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(CurvedAnimation(
+    //   parent: _accuseAnimationController,
+    //   curve: Curves.easeIn,
+    // ));
+    // _shakeAnimation = Tween<double>(begin: 0.0, end: 10.0).animate(
+    //   CurvedAnimation(
+    //     parent: _accuseAnimationController,
+    //     curve: Interval(0.8, 1.0, curve: Curves.elasticIn),
+    //   ),
+    // );
   }
 
   Future<void> _initializeSession() async {
@@ -135,22 +230,48 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     _accuseController.dispose();
     _bribeIdleController.dispose();
     _accuseIdleController.dispose();
+    _bribeAnimationController.dispose();
+    _accuseAnimationController.dispose();
     super.dispose();
   }
 
   void _onBribeButtonTap() {
+    setState(() {
+      final random = Random();
+      selectedBribeImage = bribeImages[random.nextInt(bribeImages.length)];
+      _isBribeAnimationVisible = true;
+    });
+    _bribeAnimationController.forward(from: 0.0);
     _bribeController.forward().then((_) {
       _bribeController.reverse();
       bribeReferee();
     });
   }
+  // void _onBribeButtonTap() {
+  //   _bribeController.forward().then((_) {
+  //     _bribeController.reverse();
+  //     bribeReferee();
+  //   });
+  // }
 
   void _onAccuseButtonTap() {
+    setState(() {
+      final random = Random();
+      selectedAccuseImage = accuseImages[random.nextInt(accuseImages.length)];
+      _isAccuseAnimationVisible = true;
+    });
+    _accuseAnimationController.forward(from: 0.0);
     _accuseController.forward().then((_) {
       _accuseController.reverse();
       accuseReferee();
     });
   }
+  // void _onAccuseButtonTap() {
+  //   _accuseController.forward().then((_) {
+  //     _accuseController.reverse();
+  //     accuseReferee();
+  //   });
+  // }
 
   void handleMessage(dynamic data) {
     try {
@@ -281,7 +402,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     sendMessage(msg);
   }
 
+  // Bribe時の背景アニメーション
   void bribeReferee() {
+    _startBribeAnimation();
     final msg = jsonEncode({
       "type": "action",
       "actionType": "bribe",
@@ -289,12 +412,21 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     sendMessage(msg);
   }
 
+  void _startBribeAnimation() {
+    _bribeAnimationController.forward(from: 0.0);
+  }
+
   void accuseReferee() {
+    _startAccuseAnimation();
     final msg = jsonEncode({
       "type": "action",
       "actionType": "accuse",
     });
     sendMessage(msg);
+  }
+
+  void _startAccuseAnimation() {
+    _accuseAnimationController.forward(from: 0.0);
   }
 
   void handleRetry(bool wantRetry) {
@@ -512,6 +644,68 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             fit: BoxFit.cover,
           ),
         ),
+        // Positioned.fill(
+        //   child: AnimatedBuilder(
+        //     animation: _accuseAnimationController,
+        //     builder: (context, child) {
+        //       return Transform.translate(
+        //         offset: Offset(_shakeAnimation.value, 0),
+        //         child: Image.asset(
+        //           _getRefereeImage(refereeStatus),
+        //           fit: BoxFit.cover,
+        //         ),
+        //       );
+        //     },
+        //   ),
+        //   // child: Image.asset(
+        //   //   _getRefereeImage(refereeStatus),
+        //   //   fit: BoxFit.cover,
+        //   // ),
+        // ),
+        // Bribe animation
+        if (_isBribeAnimationVisible)
+          Center(
+            child: AnimatedBuilder(
+              animation: _bribeAnimationController,
+              builder: (context, child) {
+                return Transform.scale(
+                  scale: _bribeBackgroundScaleAnimation.value,
+                  child: SvgPicture.asset(selectedBribeImage),
+                );
+              },
+            ),
+          ),
+        if (_isAccuseAnimationVisible)
+          Center(
+            child: AnimatedBuilder(
+              animation: _accuseAnimationController,
+              builder: (context, child) {
+                return Transform.scale(
+                  scale: _accuseBackgroundScaleAnimation.value,
+                  child: SvgPicture.asset(selectedAccuseImage),
+                );
+              },
+            ),
+          ),
+        // AnimatedBuilder(
+        //   animation: _bribeAnimationController,
+        //   builder: (context, child) {
+        //     return Transform.scale(
+        //       scale: _bribeBackgroundScaleAnimation.value,
+        //       child: SvgPicture.asset('assets/bribe.svg'),
+        //     );
+        //   },
+        // ),
+        // // Accuse animation
+        // AnimatedBuilder(
+        //   animation: _accuseAnimationController,
+        //   builder: (context, child) {
+        //     return Transform.scale(
+        //       scale: _accuseBackgroundScaleAnimation.value,
+        //       child: SvgPicture.asset('assets/accuse.svg'),
+        //     );
+        //   },
+        // ),
         SafeArea( // SafeAreaで上部のマージンを避ける
           child: Column(
             children: <Widget>[
@@ -543,18 +737,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                         ),
                       ),
                     ),
-                    // GestureDetector(
-                    //   onTapDown: (_) => _bribeController.forward(),
-                    //   onTapUp: (_) => _onBribeButtonTap(),
-                    //   child: ScaleTransition(
-                    //     scale: _bribeScaleAnimation,
-                    //     child: Image.asset(
-                    //       'assets/bribe_w_shadow.png',
-                    //       width: 80,
-                    //       height: 80,
-                    //     ),
-                    //   ),
-                    // ),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -613,18 +795,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                         ),
                       ),
                     ),
-                    // GestureDetector(
-                    //   onTapDown: (_) => _accuseController.forward(),
-                    //   onTapUp: (_) => _onAccuseButtonTap(),
-                    //   child: ScaleTransition(
-                    //     scale: _accuseScaleAnimation,
-                    //     child: Image.asset(
-                    //       'assets/accuse_w_shadow.png',
-                    //       width: 80,
-                    //       height: 80,
-                    //     ),
-                    //   ),
-                    // ),
                   ],
                 ),
               ),
