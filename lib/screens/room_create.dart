@@ -134,7 +134,36 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Generate Invitation URL'),
+        title: IconButton(
+          icon: Icon(Icons.info_outline),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('App Title'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text('This App is not too political🍉'),
+                      SizedBox(height: 8),
+                      Text('© 2024 Hiroto Abe. All rights reserved.'),
+                    ],
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text('Close'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        ),
+        //title: Text('Generate Your Invitation URL'),
         actions: [
           IconButton(
             icon: Icon(Icons.warning),
@@ -142,34 +171,75 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
           ),
         ],
       ),
-      body: Center(
-        child: _isLoading
-            ? CircularProgressIndicator()
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextField(
-                      controller: _nicknameController,
-                      decoration: InputDecoration(
-                        labelText: 'Your Nickname',
-                        border: OutlineInputBorder(),
+      body: Stack(
+      children: [
+        Positioned.fill(
+          child: Image.asset(
+            "assets/room_create.png", // 使用する背景画像のパス
+            fit: BoxFit.cover,
+          ),
+        ),
+        Center(
+          child: _isLoading
+              ? CircularProgressIndicator()
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextField(
+                        controller: _nicknameController,
+                        decoration: InputDecoration(
+                          labelText: 'Your Nickname',
+                          border: OutlineInputBorder(),
+                        ),
                       ),
                     ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => createRoom(context),
-                    child: Text('Generate'),
-                  ),
-                  // SizedBox(height: 20),
-                  // ElevatedButton(
-                  //   onPressed: () => reloadHomeScreen(context),
-                  //   child: Text('ホーム画面をリロード'),
-                  // ),
-                ],
-              ),
-      ),
+                    ElevatedButton(
+                      onPressed: () => createRoom(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue, // ボタンの背景色
+                        foregroundColor: Colors.white, // 文字の色
+                      ),
+                      child: Text('Generate'),
+                    ),
+                    // ElevatedButton(
+                    //   onPressed: () => createRoom(context),
+                    //   child: Text('Generate'),
+                    // ),
+                  ],
+                ),
+        ),
+      ],
+    ),
+      // body: Center(
+      //   child: _isLoading
+      //       ? CircularProgressIndicator()
+      //       : Column(
+      //           mainAxisAlignment: MainAxisAlignment.center,
+      //           children: <Widget>[
+      //             Padding(
+      //               padding: const EdgeInsets.all(8.0),
+      //               child: TextField(
+      //                 controller: _nicknameController,
+      //                 decoration: InputDecoration(
+      //                   labelText: 'Your Nickname',
+      //                   border: OutlineInputBorder(),
+      //                 ),
+      //               ),
+      //             ),
+      //             ElevatedButton(
+      //               onPressed: () => createRoom(context),
+      //               child: Text('Generate'),
+      //             ),
+      //             // SizedBox(height: 20),
+      //             // ElevatedButton(
+      //             //   onPressed: () => reloadHomeScreen(context),
+      //             //   child: Text('ホーム画面をリロード'),
+      //             // ),
+      //           ],
+      //         ),
+      // ),
     );
   }
 }

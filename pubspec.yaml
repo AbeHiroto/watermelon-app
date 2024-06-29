@@ -92,9 +92,30 @@ flutter:
     - assets/accuse_2.svg
     - assets/accuse_3.svg
     - assets/accuse_4.svg
+    - assets/accuse_5.svg
     - assets/accuse_w_shadow.png
 
     - assets/backpattern.png
+    - assets/room_create.png
+    - assets/invitation.png
+
+    - assets/referee/
+
+    - assets/referee/normal_01.png
+    - assets/referee/normal_02.png
+    - assets/referee/normal_03.png
+    - assets/referee/normal_04.png
+    - assets/referee/normal_05.png
+    - assets/referee/normal_06.png
+    - assets/referee/normal_07.png
+    - assets/referee/angry_01.png
+    - assets/referee/angry_02.png
+    - assets/referee/angry_03.png
+    - assets/referee/angry_04.png
+    - assets/referee/angry_05.png
+    - assets/referee/sad_01.png
+    - assets/referee/sad_02.png
+    - assets/referee/sad_03.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

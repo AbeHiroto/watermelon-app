@@ -111,26 +111,33 @@ class _MyRequestScreenState extends State<MyRequestScreen> {
           ),
         ],
       ),
-      body: FutureBuilder<List<dynamic>>(
-        future: _requestInfo,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else {
-            return ListView.builder(
-              itemCount: snapshot.data!.length,
-              itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(snapshot.data![index]['challengerNickname']),
-                  subtitle: Text('Opponent: ${snapshot.data![index]['roomCreator']} - Theme: ${snapshot.data![index]['roomTheme']}'),
-                  trailing: Text(snapshot.data![index]['status']),
-                );
-              },
-            );
-          }
-        },
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("invitation.png"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: FutureBuilder<List<dynamic>>(
+          future: _requestInfo,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else {
+              return ListView.builder(
+                itemCount: snapshot.data!.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text('Waiting for ${snapshot.data![index]['roomCreator']}'),
+                    trailing: Text(snapshot.data![index]['status']),
+                  );
+                },
+              );
+            }
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: disableMyRequest,
@@ -139,4 +146,43 @@ class _MyRequestScreenState extends State<MyRequestScreen> {
       ),
     );
   }
+  // Widget build(BuildContext context) {
+  //   return Scaffold(
+  //     appBar: AppBar(
+  //       title: Text('Requesting a match'),
+  //       actions: [
+  //         IconButton(
+  //           icon: Icon(Icons.warning),
+  //           onPressed: _showResetConfirmationDialog,
+  //         ),
+  //       ],
+  //     ),
+  //     body: FutureBuilder<List<dynamic>>(
+  //       future: _requestInfo,
+  //       builder: (context, snapshot) {
+  //         if (snapshot.connectionState == ConnectionState.waiting) {
+  //           return Center(child: CircularProgressIndicator());
+  //         } else if (snapshot.hasError) {
+  //           return Center(child: Text('Error: ${snapshot.error}'));
+  //         } else {
+  //           return ListView.builder(
+  //             itemCount: snapshot.data!.length,
+  //             itemBuilder: (context, index) {
+  //               return ListTile(
+  //                 title: Text(snapshot.data![index]['challengerNickname']),
+  //                 subtitle: Text('Opponent: ${snapshot.data![index]['roomCreator']} - Theme: ${snapshot.data![index]['roomTheme']}'),
+  //                 trailing: Text(snapshot.data![index]['status']),
+  //               );
+  //             },
+  //           );
+  //         }
+  //       },
+  //     ),
+  //     floatingActionButton: FloatingActionButton(
+  //       onPressed: disableMyRequest,
+  //       tooltip: 'Disable My Request',
+  //       child: Icon(Icons.cancel),
+  //     ),
+  //   );
+  // }
 }

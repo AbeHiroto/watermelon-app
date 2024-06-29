@@ -121,44 +121,6 @@ class _InviteScreenState extends State<InviteScreen> {
         content: Text('Error Occurred: $e'),
       ));
     }
-    // final response = await http.post(
-    //   Uri.parse('http://localhost:8080/challenger/create/${widget.uniqueToken}'),
-    //   headers: headers,
-    //   body: jsonEncode({
-    //     'nickname': _nicknameController.text,
-    //     'subscriptionStatus': 'paid', // 課金ステータスが必要であれば設定
-    //   }),
-    // );
-
-    // if (response.statusCode == 201) {
-    //   final data = jsonDecode(response.body);
-    //   if (data.containsKey('newToken')) {
-    //     await prefs.setString('jwtToken', data['newToken']);
-    //     print('Saved newToken: ${data['newToken']}');
-    //     jwtToken = data['newToken'];
-    //   }
-      
-    //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-    //     content: Text('Request sent successfully'),
-    //   ));
-    //   // 対戦申請後にホーム画面に遷移
-    //   Navigator.pushReplacementNamed(context, '/');
-    // } else {
-    //   final data = jsonDecode(response.body);
-
-    //   // 新しいJWTトークンがレスポンスに含まれている場合、それを保存
-    //   if (data.containsKey('newToken')) {
-    //     await prefs.setString('jwtToken', data['newToken']);
-    //     print('Saved newToken: ${data['newToken']}');
-    //   }
-
-    //   setState(() {
-    //     _isLoading = false;
-    //   });
-    //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-    //     content: Text('Fail to Send Request'),
-    //   ));
-    // }
   }
 
   void _clearJwtAndSessionId() async {
@@ -210,31 +172,66 @@ class _InviteScreenState extends State<InviteScreen> {
           ),
         ],
       ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('Opponent: $roomCreator'),
-                  Text('Theme: $roomTheme'),
-                  SizedBox(height: 20),
-                  TextField(
-                    controller: _nicknameController,
-                    decoration: InputDecoration(
-                      labelText: 'Your Nickname',
-                      border: OutlineInputBorder(),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/invitation.png"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: _isLoading
+            ? Center(child: CircularProgressIndicator())
+            : Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 20),
+                    TextField(
+                      controller: _nicknameController,
+                      decoration: InputDecoration(
+                        labelText: 'Your Nickname',
+                        border: OutlineInputBorder(),
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () => submitChallenge(context),
-                    child: Text('Submit'),
-                  ),
-                ],
+                    SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () => submitChallenge(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue, // ボタンの背景色
+                        foregroundColor: Colors.white, // 文字の色
+                      ),
+                      child: Text('Submit to $roomCreator'),
+                    ),
+                  ],
+                ),
               ),
-            ),
+      ),
+      // body: _isLoading
+      //     ? Center(child: CircularProgressIndicator())
+      //     : Padding(
+      //         padding: const EdgeInsets.all(16.0),
+      //         child: Column(
+      //           mainAxisAlignment: MainAxisAlignment.center,
+      //           children: [
+      //             // Text('Opponent: $roomCreator'),
+      //             // Text('Theme: $roomTheme'),
+      //             SizedBox(height: 20),
+      //             TextField(
+      //               controller: _nicknameController,
+      //               decoration: InputDecoration(
+      //                 labelText: 'Your Nickname',
+      //                 border: OutlineInputBorder(),
+      //               ),
+      //             ),
+      //             SizedBox(height: 20),
+      //             ElevatedButton(
+      //               onPressed: () => submitChallenge(context),
+      //               child: Text('Submit to $roomCreator'),
+      //             ),
+      //           ],
+      //         ),
+      //       ),
     );
   }
 }

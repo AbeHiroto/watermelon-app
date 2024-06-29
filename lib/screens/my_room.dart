@@ -192,87 +192,173 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
           ),
         ],
       ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : roomData == null
-              ? Center(child: Text('ルーム情報を読み込めませんでした'))
-              : Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Center(
-                            child: Column(
-                              children: [
-                                QrImageView(
-                                  data: "https://demo.com/bribe/play/${roomData!['uniqueToken']}",
-                                  version: QrVersions.auto,
-                                  size: 240.0,
-                                ),
-                                SizedBox(height: 20),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/room_create.png', // 背景画像のパス
+              fit: BoxFit.cover,
+            ),
+          ),
+          isLoading
+              ? Center(child: CircularProgressIndicator())
+              : roomData == null
+                  ? Center(child: Text('ルーム情報を読み込めませんでした'))
+                  : Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Center(
+                                child: Column(
                                   children: [
-                                    Flexible(
-                                        child: Text(
-                                        'https://demo.com/bribe/play/${roomData!['uniqueToken']}',
-                                        overflow: TextOverflow.ellipsis,
+                                    Center(
+                                      child: Column(
+                                        children: [
+                                          Container(
+                                            color: Colors.white, // 背景色を白に設定
+                                            padding: EdgeInsets.all(8.0), // 内側の余白を追加
+                                            child: QrImageView(
+                                              data: "https://demo.com/bribe/play/${roomData!['uniqueToken']}",
+                                              version: QrVersions.auto,
+                                              size: 240.0,
+                                            ),
+                                          ),
+                                          SizedBox(height: 20),
+                                          Container(
+                                            color: Colors.white, // 背景色を白に設定
+                                            padding: EdgeInsets.all(8.0), // 内側の余白を追加
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Flexible(
+                                                  child: Text(
+                                                    'https://demo.com/bribe/play/${roomData!['uniqueToken']}',
+                                                    overflow: TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                                IconButton(
+                                                  icon: Icon(Icons.copy),
+                                                  onPressed: () {
+                                                    _copyToClipboard("https://demo.com/bribe/play/${roomData!['uniqueToken']}");
+                                                  },
+                                                ),
+                                                IconButton(
+                                                  icon: Icon(Icons.delete),
+                                                  onPressed: showDeleteConfirmationDialog, // 確認ダイアログを表示
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    IconButton(
-                                      icon: Icon(Icons.copy),
-                                      onPressed: () {
-                                        _copyToClipboard("https://demo.com/bribe/play/${roomData!['uniqueToken']}");
-                                      },
-                                    ),
-                                    IconButton(
-                                      icon: Icon(Icons.delete),
-                                      onPressed: showDeleteConfirmationDialog, // 確認ダイアログを表示
-                                    ),
+                                    // QrImageView(
+                                    //   data: "https://demo.com/bribe/play/${roomData!['uniqueToken']}",
+                                    //   version: QrVersions.auto,
+                                    //   size: 240.0,
+                                    // ),
+                                    // SizedBox(height: 20),
+                                    // Row(
+                                    //   mainAxisAlignment: MainAxisAlignment.center,
+                                    //   children: [
+                                    //     Flexible(
+                                    //       child: Text(
+                                    //         'https://demo.com/bribe/play/${roomData!['uniqueToken']}',
+                                    //         overflow: TextOverflow.ellipsis,
+                                    //       ),
+                                    //     ),
+                                    //     IconButton(
+                                    //       icon: Icon(Icons.copy),
+                                    //       onPressed: () {
+                                    //         _copyToClipboard("https://demo.com/bribe/play/${roomData!['uniqueToken']}");
+                                    //       },
+                                    //     ),
+                                    //     IconButton(
+                                    //       icon: Icon(Icons.delete),
+                                    //       onPressed: showDeleteConfirmationDialog, // 確認ダイアログを表示
+                                    //     ),
+                                    //   ],
+                                    // ),
                                   ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                    Divider(), // 水平線
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: (roomData!['challengers'] as List).length,
-                        itemBuilder: (context, index) {
-                          final challenger = roomData!['challengers'][index];
-                          final visitorId = challenger['visitorId'] as int;  // visitorIdをintとして処理
-                          return ListTile(
-                            title: Text(challenger['challengerNickname']),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: Icon(Icons.check),
-                                  onPressed: () {
-                                    print('Accepted button pressed');
-                                    replyToChallenge(visitorId, 'accepted');
-                                  },
+                        ),
+                        Divider(), // 水平線
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: (roomData!['challengers'] as List).length,
+                            itemBuilder: (context, index) {
+                              final challenger = roomData!['challengers'][index];
+                              final visitorId = challenger['visitorId'] as int;
+                              return Container(
+                                color: Colors.white, // 背景色を白に設定
+                                margin: EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0), // マージンを追加
+                                child: ListTile(
+                                  title: Text(challenger['challengerNickname']),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: Icon(Icons.check),
+                                        onPressed: () {
+                                          print('Accepted button pressed');
+                                          replyToChallenge(visitorId, 'accepted');
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.close),
+                                        onPressed: () {
+                                          print('Rejected button pressed');
+                                          replyToChallenge(visitorId, 'rejected');
+                                        },
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                IconButton(
-                                  icon: Icon(Icons.close),
-                                  onPressed: () {
-                                    print('Rejected button pressed');
-                                    replyToChallenge(visitorId, 'rejected');
-                                  },
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
+                              );
+                            },
+                          ),
+                        ),
+                        // Expanded(
+                        //   child: ListView.builder(
+                        //     itemCount: (roomData!['challengers'] as List).length,
+                        //     itemBuilder: (context, index) {
+                        //       final challenger = roomData!['challengers'][index];
+                        //       final visitorId = challenger['visitorId'] as int;  // visitorIdをintとして処理
+                        //       return ListTile(
+                        //         title: Text(challenger['challengerNickname']),
+                        //         trailing: Row(
+                        //           mainAxisSize: MainAxisSize.min,
+                        //           children: [
+                        //             IconButton(
+                        //               icon: Icon(Icons.check),
+                        //               onPressed: () {
+                        //                 print('Accepted button pressed');
+                        //                 replyToChallenge(visitorId, 'accepted');
+                        //               },
+                        //             ),
+                        //             IconButton(
+                        //               icon: Icon(Icons.close),
+                        //               onPressed: () {
+                        //                 print('Rejected button pressed');
+                        //                 replyToChallenge(visitorId, 'rejected');
+                        //               },
+                        //             ),
+                        //           ],
+                        //         ),
+                        //       );
+                        //     },
+                        //   ),
+                        // ),
+                      ],
                     ),
-                  ],
-                ),
+        ],
+      ),
     );
   }
 }

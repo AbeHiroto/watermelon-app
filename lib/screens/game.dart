@@ -43,7 +43,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   bool _isAccuseAnimationVisible = false;
 
   String message = "";
-  List<List<String>> board = List.generate(3, (_) => List.generate(3, (_) => ''));
+  List<List<String>> board = List.generate(5, (_) => List.generate(5, (_) => ''));
+  // List<List<String>> board = List.generate(3, (_) => List.generate(3, (_) => ''));
   String currentTurn = "";
   String refereeStatus = "normal";
   int biasDegree = 0;
@@ -61,11 +62,17 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   // 賄賂と糾弾のアニメーション画像をランダムでこの中から決定
   final List<String> bribeImages = [
-    'assets/bribe.svg',
+    'assets/bribe_1.svg',
+    'assets/bribe_2.svg',
+    'assets/bribe_3.svg',
+    'assets/bribe_4.svg',
   ];
 
   final List<String> accuseImages = [
-    'assets/accuse.svg',
+    'assets/accuse_1.svg',
+    'assets/accuse_2.svg',
+    'assets/accuse_3.svg',
+    'assets/accuse_4.svg',
   ];
 
   @override
@@ -128,14 +135,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       parent: _bribeAnimationController,
       curve: Curves.easeIn,
     ));
-    // _bribeAnimationController = AnimationController(
-    //   vsync: this,
-    //   duration: Duration(seconds: 1),
-    // );
-    // _bribeBackgroundScaleAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(CurvedAnimation(
-    //   parent: _bribeAnimationController,
-    //   curve: Curves.easeIn,
-    // ));
 
     // Accuse Animation Controller for Background Animation
     _accuseAnimationController = AnimationController(
@@ -145,12 +144,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       if (status == AnimationStatus.completed) {
         setState(() {
           _isAccuseAnimationVisible = false;
-          // _shakeAnimation = Tween<double>(begin: 0.0, end: 0.0).animate(
-          //   CurvedAnimation(
-          //     parent: _accuseAnimationController,
-          //     curve: Curves.linear,
-          //   ),
-          // );
         });
       }
     });
@@ -158,26 +151,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       parent: _accuseAnimationController,
       curve: Curves.easeIn,
     ));
-    // _shakeAnimation = Tween<double>(begin: 0.0, end: 10.0).animate(
-    //   CurvedAnimation(
-    //     parent: _accuseAnimationController,
-    //     curve: Interval(0.0, 0.5, curve: Curves.elasticIn),
-    //   ),
-    // );
-    // _accuseAnimationController = AnimationController(
-    //   vsync: this,
-    //   duration: Duration(seconds: 1),
-    // );
-    // _accuseBackgroundScaleAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(CurvedAnimation(
-    //   parent: _accuseAnimationController,
-    //   curve: Curves.easeIn,
-    // ));
-    // _shakeAnimation = Tween<double>(begin: 0.0, end: 10.0).animate(
-    //   CurvedAnimation(
-    //     parent: _accuseAnimationController,
-    //     curve: Interval(0.8, 1.0, curve: Curves.elasticIn),
-    //   ),
-    // );
   }
 
   Future<void> _initializeSession() async {
@@ -608,14 +581,24 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   String _getRefereeImage(String status) {
     switch (status) {
-      case "normal":
-        return "referee_normal.png";
-      case "angry":
-        return "referee_angry.png";
-      case "sad":
-        return "referee_sad.png";
+      case "normal_01":
+      case "normal_02":
+      case "normal_03":
+      case "normal_04":
+      case "normal_05":
+      case "normal_06":
+      case "normal_07":
+      case "sad_01":
+      case "sad_02":
+      case "sad_03":
+      case "angry_01":
+      case "angry_02":
+      case "angry_03":
+      case "angry_04":
+      case "angry_05":
+        return "referee/$status.png";
       default:
-        return "referee_normal.png";
+        return "referee/normal_06.png";
     }
   }
 
@@ -635,8 +618,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 content: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
-                    // Text('www.abehiroto.com'),
-                    // SizedBox(height: 8),
+                    Text('This App is not too political🍉'),
+                    SizedBox(height: 8),
                     Text('© 2024 Hiroto Abe. All rights reserved.'),
                   ],
                 ),
@@ -673,25 +656,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             fit: BoxFit.cover,
           ),
         ),
-        // Positioned.fill(
-        //   child: AnimatedBuilder(
-        //     animation: _accuseAnimationController,
-        //     builder: (context, child) {
-        //       return Transform.translate(
-        //         offset: Offset(_shakeAnimation.value, 0),
-        //         child: Image.asset(
-        //           _getRefereeImage(refereeStatus),
-        //           fit: BoxFit.cover,
-        //         ),
-        //       );
-        //     },
-        //   ),
-        //   // child: Image.asset(
-        //   //   _getRefereeImage(refereeStatus),
-        //   //   fit: BoxFit.cover,
-        //   // ),
-        // ),
-        // Bribe animation
         if (_isBribeAnimationVisible)
           Center(
             child: AnimatedBuilder(
@@ -716,31 +680,12 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               },
             ),
           ),
-        // AnimatedBuilder(
-        //   animation: _bribeAnimationController,
-        //   builder: (context, child) {
-        //     return Transform.scale(
-        //       scale: _bribeBackgroundScaleAnimation.value,
-        //       child: SvgPicture.asset('assets/bribe.svg'),
-        //     );
-        //   },
-        // ),
-        // // Accuse animation
-        // AnimatedBuilder(
-        //   animation: _accuseAnimationController,
-        //   builder: (context, child) {
-        //     return Transform.scale(
-        //       scale: _accuseBackgroundScaleAnimation.value,
-        //       child: SvgPicture.asset('assets/accuse.svg'),
-        //     );
-        //   },
-        // ),
         SafeArea( // SafeAreaで上部のマージンを避ける
           child: Column(
             children: <Widget>[
               Container(
                 height: 80,
-                width: 480,
+                //width: 480,
                 padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -773,11 +718,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                           alignment: Alignment.center,
                           children: [
                             CustomPaint(
-                              size: Size(240, 70),
+                              size: Size(180, 70),
                               painter: SpeechBubblePainter(color: Colors.white.withOpacity(1.0)),
                             ),
                             Container(
-                              width: 200.0,
+                              width: 180.0,
                               padding: EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
                               child: Column(
                                 children: [
@@ -792,7 +737,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                     currentTurn,
                                     style: TextStyle(
                                       fontFamily: 'Roboto',
-                                      fontSize: 30.0,
+                                      fontSize: 24.0,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
