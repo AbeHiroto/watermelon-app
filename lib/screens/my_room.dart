@@ -215,7 +215,12 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text('https://demo.com/bribe/play/${roomData!['uniqueToken']}'),
+                                    Flexible(
+                                        child: Text(
+                                        'https://demo.com/bribe/play/${roomData!['uniqueToken']}',
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
                                     IconButton(
                                       icon: Icon(Icons.copy),
                                       onPressed: () {

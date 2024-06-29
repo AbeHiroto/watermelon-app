@@ -43,43 +43,99 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBody(BuildContext context, HomeState homeState) {
-  // トークンが無い場合、またはルームや申請がない場合はルーム作成画面を表示
-  if (!homeState.hasToken || (!homeState.hasRoom && !homeState.hasRequest)) {
-    return RoomCreateScreen();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double height = constraints.maxHeight;
+        double width = constraints.maxWidth;
+        bool needsHorizontalPadding = (width / height) > 0.60;
+        bool needsVerticalPadding = (height / width) > 1.8;
+
+        return Container(
+          decoration: needsHorizontalPadding
+              ? BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage("assets/backpattern.png"), // パターン画像
+                    fit: BoxFit.none, // オリジナルサイズのまま表示
+                    repeat: ImageRepeat.repeat, // 画像を繰り返して表示
+                    //fit: BoxFit.cover,
+                  ),
+                )
+              : null,
+          child: Center(
+            child: AspectRatio(
+              aspectRatio: 0.60, // 縦横比を1:0.65に設定
+              child: Container(
+                color: Colors.white, // メインコンテンツの背景色
+                margin: needsVerticalPadding
+                    ? const EdgeInsets.symmetric(vertical: 0.0)
+                    : EdgeInsets.zero,
+                padding: needsHorizontalPadding
+                    ? const EdgeInsets.symmetric(horizontal: 0.0)
+                    : EdgeInsets.zero,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: _buildGameScreen(context, homeState),
+                    ),
+                  ],
+                ),
+              ),
+              // child: Container(
+              //   color: Colors.white, // メインコンテンツの背景色
+              //   child: Padding(
+              //     padding: needsPadding
+              //         ? const EdgeInsets.symmetric(horizontal: 0.0)
+              //         : EdgeInsets.zero,
+              //     child: Column(
+              //       children: [
+              //         Expanded(
+              //           child: _buildGameScreen(context, homeState),
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              // ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
-  // 申請が承認された場合は対戦画面を表示
-  if (homeState.hasRequest && homeState.replyStatus == "accepted") {
-    return GameScreen();
-  }
-
-  // 申請管理画面（申請があり、まだ承認されていない場合）
-  if (homeState.hasRequest && homeState.replyStatus == "none") {
-    return MyRequestScreen();
-  }
-
-  // ルーム管理画面（ルームがあり、申請のステータスによって分岐）
-  if (homeState.hasRoom) {
-    switch (homeState.roomStatus) {
-      case "sent":
-        return GameScreen();
-      case "none":
-      case "waiting":
-      default:
-        return MyRoomScreen(); // ルームが存在し、申請待ちまたは申請なし
+  Widget _buildGameScreen(BuildContext context, HomeState homeState) {
+    if (!homeState.hasToken || (!homeState.hasRoom && !homeState.hasRequest)) {
+      return RoomCreateScreen();
     }
+
+    if (homeState.hasRequest && homeState.replyStatus == "accepted") {
+      return GameScreen();
+    }
+
+    if (homeState.hasRequest && homeState.replyStatus == "none") {
+      return MyRequestScreen();
+    }
+
+    if (homeState.hasRoom) {
+      switch (homeState.roomStatus) {
+        case "sent":
+          return GameScreen();
+        case "none":
+        case "waiting":
+        default:
+          return MyRoomScreen();
+      }
+    }
+    return _buildErrorScreen(context);
   }
-  return _buildErrorScreen(context);
-}
 
-Widget _buildErrorScreen(BuildContext context) {
-    return Center(child: Text("ERROR AT '_buildBody'"));
-}
+  Widget _buildErrorScreen(BuildContext context) {
+      return Center(child: Text("ERROR AT '_buildBody'"));
+  }
 
-// ！仮設用ゲーム画面ウィジェット！
-Widget _buildGameScreen(BuildContext context) {
-  return Center(child: Text("対戦画面"));
-}
+  // // ！仮設用ゲーム画面ウィジェット！
+  // Widget _buildGameScreen(BuildContext context) {
+  //   return Center(child: Text("対戦画面"));
+  // }
 }
 
 class HomeState with ChangeNotifier {
@@ -143,7 +199,7 @@ class HomeState with ChangeNotifier {
       hasRequest = false;
       replyStatus = "none";
       roomStatus = "none";
-      _showErrorDialog(context, '読み込みを失敗しました。リロードしてください。');
+      _showErrorDialog(context, 'Error occured. Please Reload.');
     } finally {
       isLoading = false;
       notifyListeners();  // UIにローディング終了を通知
