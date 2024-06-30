@@ -106,7 +106,7 @@ class _MyRequestScreenState extends State<MyRequestScreen> {
         title: Text('Requesting a match'),
         actions: [
           IconButton(
-            icon: Icon(Icons.warning),
+            icon: Icon(Icons.warning_amber_outlined),
             onPressed: _showResetConfirmationDialog,
           ),
         ],
@@ -114,75 +114,48 @@ class _MyRequestScreenState extends State<MyRequestScreen> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage("invitation.png"),
+            image: AssetImage("assets/my_request.png"),
             fit: BoxFit.cover,
           ),
         ),
-        child: FutureBuilder<List<dynamic>>(
-          future: _requestInfo,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else {
-              return ListView.builder(
-                itemCount: snapshot.data!.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text('Waiting for ${snapshot.data![index]['roomCreator']}'),
-                    trailing: Text(snapshot.data![index]['status']),
-                  );
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FutureBuilder<List<dynamic>>(
+                future: _requestInfo,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else {
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          title: Text('Waiting for ${snapshot.data![index]['roomCreator']}...'),
+                          trailing: Text(snapshot.data![index]['status']),
+                        );
+                      },
+                    );
+                  }
                 },
-              );
-            }
-          },
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: disableMyRequest,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red, // Background color
+                  foregroundColor: Colors.white, // Text color
+                ),
+                child: Text('Disable My Request'),
+              ),
+            ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: disableMyRequest,
-        tooltip: 'Disable My Request',
-        child: Icon(Icons.cancel),
       ),
     );
   }
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     appBar: AppBar(
-  //       title: Text('Requesting a match'),
-  //       actions: [
-  //         IconButton(
-  //           icon: Icon(Icons.warning),
-  //           onPressed: _showResetConfirmationDialog,
-  //         ),
-  //       ],
-  //     ),
-  //     body: FutureBuilder<List<dynamic>>(
-  //       future: _requestInfo,
-  //       builder: (context, snapshot) {
-  //         if (snapshot.connectionState == ConnectionState.waiting) {
-  //           return Center(child: CircularProgressIndicator());
-  //         } else if (snapshot.hasError) {
-  //           return Center(child: Text('Error: ${snapshot.error}'));
-  //         } else {
-  //           return ListView.builder(
-  //             itemCount: snapshot.data!.length,
-  //             itemBuilder: (context, index) {
-  //               return ListTile(
-  //                 title: Text(snapshot.data![index]['challengerNickname']),
-  //                 subtitle: Text('Opponent: ${snapshot.data![index]['roomCreator']} - Theme: ${snapshot.data![index]['roomTheme']}'),
-  //                 trailing: Text(snapshot.data![index]['status']),
-  //               );
-  //             },
-  //           );
-  //         }
-  //       },
-  //     ),
-  //     floatingActionButton: FloatingActionButton(
-  //       onPressed: disableMyRequest,
-  //       tooltip: 'Disable My Request',
-  //       child: Icon(Icons.cancel),
-  //     ),
-  //   );
-  // }
 }

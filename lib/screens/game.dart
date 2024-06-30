@@ -73,6 +73,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     'assets/accuse_2.svg',
     'assets/accuse_3.svg',
     'assets/accuse_4.svg',
+    'assets/accuse_5.svg',
   ];
 
   @override

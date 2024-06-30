@@ -141,7 +141,7 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
               context: context,
               builder: (BuildContext context) {
                 return AlertDialog(
-                  title: Text('App Title'),
+                  title: Text('Obbsessed with Watermelon'),
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
@@ -166,7 +166,7 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
         //title: Text('Generate Your Invitation URL'),
         actions: [
           IconButton(
-            icon: Icon(Icons.warning),
+            icon: Icon(Icons.warning_amber_outlined),
             onPressed: _showResetConfirmationDialog,
           ),
         ],
@@ -175,7 +175,7 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
       children: [
         Positioned.fill(
           child: Image.asset(
-            "assets/room_create.png", // 使用する背景画像のパス
+            "assets/cover.png", // 使用する背景画像のパス
             fit: BoxFit.cover,
           ),
         ),
@@ -198,10 +198,10 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
                     ElevatedButton(
                       onPressed: () => createRoom(context),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue, // ボタンの背景色
+                        backgroundColor: const Color.fromARGB(255, 0, 44, 80), // ボタンの背景色
                         foregroundColor: Colors.white, // 文字の色
                       ),
-                      child: Text('Generate'),
+                      child: Text('New Game'),
                     ),
                     // ElevatedButton(
                     //   onPressed: () => createRoom(context),

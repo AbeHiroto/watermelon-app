@@ -74,33 +74,37 @@ flutter:
     - assets/referee_normal.png
     - assets/referee_angry.png
     - assets/referee_sad.png
-    - assets/circle.svg
-    - assets/cross.svg
+
     - assets/circle.png
     - assets/cross.png
     - assets/bubble.png
     - assets/bribe.png
+    - assets/bribe_w_shadow.png
+    - assets/accuse.png
+    - assets/accuse_w_shadow.png
+
     - assets/bribe.svg
     - assets/bribe_1.svg
     - assets/bribe_2.svg
     - assets/bribe_3.svg
     - assets/bribe_4.svg
-    - assets/bribe_w_shadow.png
-    - assets/accuse.png
+    
     - assets/accuse.svg
     - assets/accuse_1.svg
     - assets/accuse_2.svg
     - assets/accuse_3.svg
     - assets/accuse_4.svg
     - assets/accuse_5.svg
-    - assets/accuse_w_shadow.png
 
     - assets/backpattern.png
+    - assets/cover.png
+    - assets/obsessed.png
     - assets/room_create.png
+    - assets/my_room.png
     - assets/invitation.png
+    - assets/my_request.png
 
     - assets/referee/
-
     - assets/referee/normal_01.png
     - assets/referee/normal_02.png
     - assets/referee/normal_03.png

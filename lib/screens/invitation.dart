@@ -31,9 +31,11 @@ class _InviteScreenState extends State<InviteScreen> {
   }
 
   Future<void> fetchRoomInfo() async {
-    setState(() {
-      _isLoading = true;
-    });
+    // ここで setState は呼ばない
+    _isLoading = true;
+    // setState(() {
+    //   _isLoading = true;
+    // });
 
     final response = await http.get(
       Uri.parse('http://localhost:8080/play/${widget.uniqueToken}'),
@@ -41,19 +43,38 @@ class _InviteScreenState extends State<InviteScreen> {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      setState(() {
-        roomCreator = data['roomCreator'];
-        roomTheme = data['roomTheme'];
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          roomCreator = data['roomCreator'];
+          roomTheme = data['roomTheme'];
+          _isLoading = false;
+        });
+      }
     } else {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('ルーム情報の取得に失敗しました。'),
       ));
     }
+    // if (response.statusCode == 200) {
+    //   final data = jsonDecode(response.body);
+    //   setState(() {
+    //     roomCreator = data['roomCreator'];
+    //     roomTheme = data['roomTheme'];
+    //     _isLoading = false;
+    //   });
+    // } else {
+    //   setState(() {
+    //     _isLoading = false;
+    //   });
+    //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    //     content: Text('ルーム情報の取得に失敗しました。'),
+    //   ));
+    // }
   }
 
   Future<void> submitChallenge(BuildContext context) async {
@@ -164,74 +185,100 @@ class _InviteScreenState extends State<InviteScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Request Matching'),
+        title: IconButton(
+          icon: Icon(Icons.info_outline),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('App Title'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text('This App is not too political🍉'),
+                      SizedBox(height: 8),
+                      Text('© 2024 Hiroto Abe. All rights reserved.'),
+                    ],
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text('Close'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        ),
         actions: [
           IconButton(
-            icon: Icon(Icons.warning),
+            icon: Icon(Icons.warning_amber_outlined),
             onPressed: _showResetConfirmationDialog,
           ),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("assets/invitation.png"),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: _isLoading
-            ? Center(child: CircularProgressIndicator())
-            : Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(height: 20),
-                    TextField(
-                      controller: _nicknameController,
-                      decoration: InputDecoration(
-                        labelText: 'Your Nickname',
-                        border: OutlineInputBorder(),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () => submitChallenge(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue, // ボタンの背景色
-                        foregroundColor: Colors.white, // 文字の色
-                      ),
-                      child: Text('Submit to $roomCreator'),
-                    ),
-                  ],
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          double height = constraints.maxHeight;
+          double width = constraints.maxWidth;
+          bool needsHorizontalPadding = (width / height) > 0.60;
+          bool needsVerticalPadding = (height / width) > 1.8;
+
+          return Container(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage("assets/invitation.png"),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: 0.60, // 縦横比を0.60に設定
+                child: Container(
+                  color: Colors.white.withOpacity(0.0), // 背景の白色と透明度を設定
+                  margin: needsVerticalPadding
+                      ? const EdgeInsets.symmetric(vertical: 20.0)
+                      : EdgeInsets.zero,
+                  padding: needsHorizontalPadding
+                      ? const EdgeInsets.symmetric(horizontal: 20.0)
+                      : EdgeInsets.zero,
+                  child: _isLoading
+                      ? Center(child: CircularProgressIndicator())
+                      : Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(height: 20),
+                              TextField(
+                                controller: _nicknameController,
+                                decoration: InputDecoration(
+                                  labelText: 'Your Nickname',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                              SizedBox(height: 20),
+                              ElevatedButton(
+                                onPressed: () => submitChallenge(context),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue, // ボタンの背景色
+                                  foregroundColor: Colors.white, // 文字の色
+                                ),
+                                child: Text('Submit to $roomCreator'),
+                              ),
+                            ],
+                          ),
+                        ),
                 ),
               ),
+            ),
+          );
+        },
       ),
-      // body: _isLoading
-      //     ? Center(child: CircularProgressIndicator())
-      //     : Padding(
-      //         padding: const EdgeInsets.all(16.0),
-      //         child: Column(
-      //           mainAxisAlignment: MainAxisAlignment.center,
-      //           children: [
-      //             // Text('Opponent: $roomCreator'),
-      //             // Text('Theme: $roomTheme'),
-      //             SizedBox(height: 20),
-      //             TextField(
-      //               controller: _nicknameController,
-      //               decoration: InputDecoration(
-      //                 labelText: 'Your Nickname',
-      //                 border: OutlineInputBorder(),
-      //               ),
-      //             ),
-      //             SizedBox(height: 20),
-      //             ElevatedButton(
-      //               onPressed: () => submitChallenge(context),
-      //               child: Text('Submit to $roomCreator'),
-      //             ),
-      //           ],
-      //         ),
-      //       ),
     );
   }
 }

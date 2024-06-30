@@ -80,21 +80,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-              // child: Container(
-              //   color: Colors.white, // メインコンテンツの背景色
-              //   child: Padding(
-              //     padding: needsPadding
-              //         ? const EdgeInsets.symmetric(horizontal: 0.0)
-              //         : EdgeInsets.zero,
-              //     child: Column(
-              //       children: [
-              //         Expanded(
-              //           child: _buildGameScreen(context, homeState),
-              //         ),
-              //       ],
-              //     ),
-              //   ),
-              // ),
             ),
           ),
         );

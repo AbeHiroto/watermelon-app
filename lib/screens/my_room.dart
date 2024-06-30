@@ -184,10 +184,39 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Invitate Your Friend'),
+        title: IconButton(
+          icon: Icon(Icons.info_outline),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('App Title'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text('This App is not too political🍉'),
+                      SizedBox(height: 8),
+                      Text('© 2024 Hiroto Abe. All rights reserved.'),
+                    ],
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text('Close'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        ),
+        // title: Text('Invitate Your Friend'),
         actions: [
           IconButton(
-            icon: Icon(Icons.warning),
+            icon: Icon(Icons.warning_amber_outlined),
             onPressed: _showResetConfirmationDialog,
           ),
         ],
@@ -196,7 +225,7 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
         children: [
           Positioned.fill(
             child: Image.asset(
-              'assets/room_create.png', // 背景画像のパス
+              'assets/my_room.png', // 背景画像のパス
               fit: BoxFit.cover,
             ),
           ),
@@ -221,7 +250,7 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
                                             color: Colors.white, // 背景色を白に設定
                                             padding: EdgeInsets.all(8.0), // 内側の余白を追加
                                             child: QrImageView(
-                                              data: "https://demo.com/bribe/play/${roomData!['uniqueToken']}",
+                                              data: "https://abehiroto.com/bribe/play/${roomData!['uniqueToken']}",
                                               version: QrVersions.auto,
                                               size: 240.0,
                                             ),
@@ -235,14 +264,14 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
                                               children: [
                                                 Flexible(
                                                   child: Text(
-                                                    'https://demo.com/bribe/play/${roomData!['uniqueToken']}',
+                                                    'https://abehiroto.com/bribe/play/${roomData!['uniqueToken']}',
                                                     overflow: TextOverflow.ellipsis,
                                                   ),
                                                 ),
                                                 IconButton(
                                                   icon: Icon(Icons.copy),
                                                   onPressed: () {
-                                                    _copyToClipboard("https://demo.com/bribe/play/${roomData!['uniqueToken']}");
+                                                    _copyToClipboard("https://abehiroto.com/bribe/play/${roomData!['uniqueToken']}");
                                                   },
                                                 ),
                                                 IconButton(
@@ -255,33 +284,6 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
                                         ],
                                       ),
                                     ),
-                                    // QrImageView(
-                                    //   data: "https://demo.com/bribe/play/${roomData!['uniqueToken']}",
-                                    //   version: QrVersions.auto,
-                                    //   size: 240.0,
-                                    // ),
-                                    // SizedBox(height: 20),
-                                    // Row(
-                                    //   mainAxisAlignment: MainAxisAlignment.center,
-                                    //   children: [
-                                    //     Flexible(
-                                    //       child: Text(
-                                    //         'https://demo.com/bribe/play/${roomData!['uniqueToken']}',
-                                    //         overflow: TextOverflow.ellipsis,
-                                    //       ),
-                                    //     ),
-                                    //     IconButton(
-                                    //       icon: Icon(Icons.copy),
-                                    //       onPressed: () {
-                                    //         _copyToClipboard("https://demo.com/bribe/play/${roomData!['uniqueToken']}");
-                                    //       },
-                                    //     ),
-                                    //     IconButton(
-                                    //       icon: Icon(Icons.delete),
-                                    //       onPressed: showDeleteConfirmationDialog, // 確認ダイアログを表示
-                                    //     ),
-                                    //   ],
-                                    // ),
                                   ],
                                 ),
                               ),
@@ -309,7 +311,7 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
                                           print('Accepted button pressed');
                                           replyToChallenge(visitorId, 'accepted');
                                         },
-                                      ),
+                                      ),                                      
                                       IconButton(
                                         icon: Icon(Icons.close),
                                         onPressed: () {
@@ -324,37 +326,6 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
                             },
                           ),
                         ),
-                        // Expanded(
-                        //   child: ListView.builder(
-                        //     itemCount: (roomData!['challengers'] as List).length,
-                        //     itemBuilder: (context, index) {
-                        //       final challenger = roomData!['challengers'][index];
-                        //       final visitorId = challenger['visitorId'] as int;  // visitorIdをintとして処理
-                        //       return ListTile(
-                        //         title: Text(challenger['challengerNickname']),
-                        //         trailing: Row(
-                        //           mainAxisSize: MainAxisSize.min,
-                        //           children: [
-                        //             IconButton(
-                        //               icon: Icon(Icons.check),
-                        //               onPressed: () {
-                        //                 print('Accepted button pressed');
-                        //                 replyToChallenge(visitorId, 'accepted');
-                        //               },
-                        //             ),
-                        //             IconButton(
-                        //               icon: Icon(Icons.close),
-                        //               onPressed: () {
-                        //                 print('Rejected button pressed');
-                        //                 replyToChallenge(visitorId, 'rejected');
-                        //               },
-                        //             ),
-                        //           ],
-                        //         ),
-                        //       );
-                        //     },
-                        //   ),
-                        // ),
                       ],
                     ),
         ],
