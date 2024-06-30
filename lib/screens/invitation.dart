@@ -192,7 +192,7 @@ class _InviteScreenState extends State<InviteScreen> {
               context: context,
               builder: (BuildContext context) {
                 return AlertDialog(
-                  title: Text('App Title'),
+                  title: Text('Obsessed with Watermelon'),
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
@@ -265,7 +265,7 @@ class _InviteScreenState extends State<InviteScreen> {
                               ElevatedButton(
                                 onPressed: () => submitChallenge(context),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue, // ボタンの背景色
+                                  backgroundColor: const Color.fromARGB(255, 0, 38, 70), // ボタンの背景色
                                   foregroundColor: Colors.white, // 文字の色
                                 ),
                                 child: Text('Submit to $roomCreator'),

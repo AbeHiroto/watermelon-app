@@ -615,7 +615,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                title: Text('App Title'),
+                title: Text('Obsessed with Watermelon'),
                 content: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[

@@ -103,7 +103,36 @@ class _MyRequestScreenState extends State<MyRequestScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Requesting a match'),
+        title: IconButton(
+          icon: Icon(Icons.info_outline),
+          onPressed: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Text('Obsessed with Watermelon'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Text('This App is not too political🍉'),
+                      SizedBox(height: 8),
+                      Text('© 2024 Hiroto Abe. All rights reserved.'),
+                    ],
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      child: Text('Close'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        ),
+        // title: Text('Requesting a match'),
         actions: [
           IconButton(
             icon: Icon(Icons.warning_amber_outlined),

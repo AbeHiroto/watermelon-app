@@ -6,10 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:uni_links/uni_links.dart';
 import 'home_state.dart';
 import 'screens/invitation.dart';
-// import 'screens/my_request.dart';
-// import 'screens/my_room.dart';
-// import 'screens/room_create.dart';
-// import 'screens/game.dart';
 
 
 void main() {

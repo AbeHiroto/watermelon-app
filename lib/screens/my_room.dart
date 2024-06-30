@@ -191,7 +191,7 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
               context: context,
               builder: (BuildContext context) {
                 return AlertDialog(
-                  title: Text('App Title'),
+                  title: Text('Obsessed with Watermelon'),
                   content: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
@@ -250,7 +250,7 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
                                             color: Colors.white, // 背景色を白に設定
                                             padding: EdgeInsets.all(8.0), // 内側の余白を追加
                                             child: QrImageView(
-                                              data: "https://abehiroto.com/bribe/play/${roomData!['uniqueToken']}",
+                                              data: "https://abehiroto.com/watermelon/play/${roomData!['uniqueToken']}",
                                               version: QrVersions.auto,
                                               size: 240.0,
                                             ),
@@ -264,14 +264,14 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
                                               children: [
                                                 Flexible(
                                                   child: Text(
-                                                    'https://abehiroto.com/bribe/play/${roomData!['uniqueToken']}',
+                                                    'https://abehiroto.com/watermelon/play/${roomData!['uniqueToken']}',
                                                     overflow: TextOverflow.ellipsis,
                                                   ),
                                                 ),
                                                 IconButton(
                                                   icon: Icon(Icons.copy),
                                                   onPressed: () {
-                                                    _copyToClipboard("https://abehiroto.com/bribe/play/${roomData!['uniqueToken']}");
+                                                    _copyToClipboard("https://abehiroto.com/watermelon/play/${roomData!['uniqueToken']}");
                                                   },
                                                 ),
                                                 IconButton(

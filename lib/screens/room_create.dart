@@ -172,74 +172,46 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
         ],
       ),
       body: Stack(
-      children: [
-        Positioned.fill(
-          child: Image.asset(
-            "assets/cover.png", // 使用する背景画像のパス
-            fit: BoxFit.cover,
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              "assets/cover.png", // 使用する背景画像のパス
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-        Center(
-          child: _isLoading
-              ? CircularProgressIndicator()
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextField(
-                        controller: _nicknameController,
-                        decoration: InputDecoration(
-                          labelText: 'Your Nickname',
-                          border: OutlineInputBorder(),
+          Center(
+            child: _isLoading
+                ? CircularProgressIndicator()
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextField(
+                          controller: _nicknameController,
+                          decoration: InputDecoration(
+                            labelText: 'Your Nickname',
+                            border: OutlineInputBorder(),
+                          ),
                         ),
                       ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () => createRoom(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 0, 44, 80), // ボタンの背景色
-                        foregroundColor: Colors.white, // 文字の色
+                      ElevatedButton(
+                        onPressed: () => createRoom(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color.fromARGB(255, 0, 44, 80), // ボタンの背景色
+                          foregroundColor: Colors.white, // 文字の色
+                        ),
+                        child: Text('New Game'),
                       ),
-                      child: Text('New Game'),
-                    ),
-                    // ElevatedButton(
-                    //   onPressed: () => createRoom(context),
-                    //   child: Text('Generate'),
-                    // ),
-                  ],
-                ),
-        ),
-      ],
-    ),
-      // body: Center(
-      //   child: _isLoading
-      //       ? CircularProgressIndicator()
-      //       : Column(
-      //           mainAxisAlignment: MainAxisAlignment.center,
-      //           children: <Widget>[
-      //             Padding(
-      //               padding: const EdgeInsets.all(8.0),
-      //               child: TextField(
-      //                 controller: _nicknameController,
-      //                 decoration: InputDecoration(
-      //                   labelText: 'Your Nickname',
-      //                   border: OutlineInputBorder(),
-      //                 ),
-      //               ),
-      //             ),
-      //             ElevatedButton(
-      //               onPressed: () => createRoom(context),
-      //               child: Text('Generate'),
-      //             ),
-      //             // SizedBox(height: 20),
-      //             // ElevatedButton(
-      //             //   onPressed: () => reloadHomeScreen(context),
-      //             //   child: Text('ホーム画面をリロード'),
-      //             // ),
-      //           ],
-      //         ),
-      // ),
+                      // ElevatedButton(
+                      //   onPressed: () => createRoom(context),
+                      //   child: Text('Generate'),
+                      // ),
+                    ],
+                  ),
+          ),
+        ],
+      ),
     );
   }
 }
