@@ -167,9 +167,16 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     }
   }
 
+    // 　 　＿＿＿　　　／￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣
+      // 　／´∀｀;::::＼ ＜ おれの名はテレホマン。さすがにここは直さんといかんだろ。
+      // /　　　　/::::::::::|　 ＼＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+      // | ./|　　/:::::|::::::|
+      // | |｜／::::::::|::::::|
+
   Future<void> _connectWebSocket(String jwtToken, String sessionId) async {
     try {
-      final url = 'ws://localhost:8080/ws?token=$jwtToken&sessionID=$sessionId';
+      final url = 'wss://abehiroto.com/wss?token=$jwtToken&sessionID=$sessionId';
+      // final url = 'ws://localhost:8080/ws?token=$jwtToken&sessionID=$sessionId';
       if (kIsWeb) {
         channel = HtmlWebSocketChannel.connect(url);
       } else {
@@ -597,9 +604,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       case "angry_03":
       case "angry_04":
       case "angry_05":
-        return "referee/$status.png";
+        return "assets/$status.png";
       default:
-        return "referee/normal_06.png";
+        return "assets/normal_06.png";
     }
   }
 

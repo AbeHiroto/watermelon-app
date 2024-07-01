@@ -26,8 +26,15 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
     final prefs = await SharedPreferences.getInstance();
     final jwtToken = prefs.getString('jwtToken') ?? '';
 
+      // 　 　＿＿＿　　　／￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣
+      // 　／´∀｀;::::＼ ＜ おれの名はテレホマン。さすがにここは直さんといかんだろ。
+      // /　　　　/::::::::::|　 ＼＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+      // | ./|　　/:::::|::::::|
+      // | |｜／::::::::|::::::|
+
     final response = await http.get(
-      Uri.parse('http://localhost:8080/room/info'),
+      Uri.parse('https://abehiroto.com:10443/room/info'),
+      // Uri.parse('http://localhost:8080/room/info'),
       headers: {
         'Authorization': 'Bearer $jwtToken',
       },
@@ -63,8 +70,15 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
 
     print('Replying to challenge with status: $status for visitorId: $visitorId');
 
+      // 　 　＿＿＿　　　／￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣
+      // 　／´∀｀;::::＼ ＜ おれの名はテレホマン。さすがにここは直さんといかんだろ。
+      // /　　　　/::::::::::|　 ＼＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+      // | ./|　　/:::::|::::::|
+      // | |｜／::::::::|::::::|
+
     final response = await http.put(
-      Uri.parse('http://localhost:8080/request/reply'),
+      Uri.parse('https://abehiroto.com:10443/request/reply'),
+      // Uri.parse('http://localhost:8080/request/reply'),
       headers: {
         'Authorization': 'Bearer $jwtToken',
         'Content-Type': 'application/json',
@@ -117,8 +131,15 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
     final prefs = await SharedPreferences.getInstance();
     final jwtToken = prefs.getString('jwtToken') ?? '';
 
+      // 　 　＿＿＿　　　／￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣
+      // 　／´∀｀;::::＼ ＜ おれの名はテレホマン。さすがにここは直さんといかんだろ。
+      // /　　　　/::::::::::|　 ＼＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+      // | ./|　　/:::::|::::::|
+      // | |｜／::::::::|::::::|
+
     final response = await http.delete(
-      Uri.parse('http://localhost:8080/room'),
+      Uri.parse('https://abehiroto.com:10443/room'),
+      // Uri.parse('http://localhost:8080/room'),
       headers: {
         'Authorization': 'Bearer $jwtToken',
       },
@@ -250,7 +271,7 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
                                             color: Colors.white, // 背景色を白に設定
                                             padding: EdgeInsets.all(8.0), // 内側の余白を追加
                                             child: QrImageView(
-                                              data: "https://abehiroto.com/watermelon/play/${roomData!['uniqueToken']}",
+                                              data: "https://abehiroto.com/wmapp/play/${roomData!['uniqueToken']}",
                                               version: QrVersions.auto,
                                               size: 240.0,
                                             ),
@@ -264,14 +285,14 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
                                               children: [
                                                 Flexible(
                                                   child: Text(
-                                                    'https://abehiroto.com/watermelon/play/${roomData!['uniqueToken']}',
+                                                    'https://abehiroto.com/wmapp/play/${roomData!['uniqueToken']}',
                                                     overflow: TextOverflow.ellipsis,
                                                   ),
                                                 ),
                                                 IconButton(
                                                   icon: Icon(Icons.copy),
                                                   onPressed: () {
-                                                    _copyToClipboard("https://abehiroto.com/watermelon/play/${roomData!['uniqueToken']}");
+                                                    _copyToClipboard("https://abehiroto.com/wmapp/play/${roomData!['uniqueToken']}");
                                                   },
                                                 ),
                                                 IconButton(

@@ -85,11 +85,19 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+      // 　 　＿＿＿　　　／￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣
+      // 　／´∀｀;::::＼ ＜ おれの名はテレホマン。さすがにここは直さんといかんだろ。
+      // /　　　　/::::::::::|　 ＼＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+      // | ./|　　/:::::|::::::|
+      // | |｜／::::::::|::::::|
+
   void _handleDeepLink(String link) {
     print('Deep link received: $link');
     Uri uri = Uri.parse(link);
-    if (uri.pathSegments.length > 1 && uri.pathSegments[0] == 'play') {
-      String uniqueToken = uri.pathSegments[1];
+    print('URI Path: ${uri.path}');
+    print('URI Path Segments: ${uri.pathSegments}');
+    if (uri.pathSegments.length > 2 && uri.pathSegments[1] == 'play') {
+      String uniqueToken = uri.pathSegments[2];
       print('Unique token: $uniqueToken');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.of(navigatorKey.currentContext!).pushNamed('/invite', arguments: uniqueToken);
@@ -98,6 +106,20 @@ class _MyAppState extends State<MyApp> {
       print('Invalid link format');
     }
   }
+  // //本番環境ではパスセグメントの構造が異なるため上のように更新
+  // void _handleDeepLink(String link) {
+  //   print('Deep link received: $link');
+  //   Uri uri = Uri.parse(link);
+  //   if (uri.pathSegments.length > 1 && uri.pathSegments[0] == 'play') {
+  //     String uniqueToken = uri.pathSegments[1];
+  //     print('Unique token: $uniqueToken');
+  //     WidgetsBinding.instance.addPostFrameCallback((_) {
+  //       Navigator.of(navigatorKey.currentContext!).pushNamed('/invite', arguments: uniqueToken);
+  //     });
+  //   } else {
+  //     print('Invalid link format');
+  //   }
+  // }
 
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -106,7 +128,7 @@ class _MyAppState extends State<MyApp> {
     return ChangeNotifierProvider<HomeState>(
       create: (_) => HomeState(),
       child: MaterialApp(
-        title: 'bribe',
+        title: 'Obsessed with Watermelon',
         navigatorKey: navigatorKey,
         theme: ThemeData(
           fontFamily: 'NotoSansJP', // 日本語対応フォントファミリーの設定
