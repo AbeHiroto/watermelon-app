@@ -37,8 +37,15 @@ class _InviteScreenState extends State<InviteScreen> {
     //   _isLoading = true;
     // });
 
+    // 　 　＿＿＿　　　／￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣
+    // 　／´∀｀;::::＼ ＜ おれの名はテレホマン。さすがにここは直さんといかんだろ。
+    // /　　　　/::::::::::|　 ＼＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+    // | ./|　　/:::::|::::::|
+    // | |｜／::::::::|::::::| 
+
     final response = await http.get(
-      Uri.parse('http://localhost:8080/play/${widget.uniqueToken}'),
+      Uri.parse('https://abehiroto.com:10443/play/${widget.uniqueToken}'),
+      // Uri.parse('http://localhost:8080/play/${widget.uniqueToken}'),
     );
 
     if (response.statusCode == 200) {
@@ -97,9 +104,16 @@ class _InviteScreenState extends State<InviteScreen> {
       headers['Authorization'] = 'Bearer $jwtToken';
     }
 
+       // 　 　＿＿＿　　　／￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣
+      // 　／´∀｀;::::＼ ＜ おれの名はテレホマン。さすがにここは直さんといかんだろ。
+      // /　　　　/::::::::::|　 ＼＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+      // | ./|　　/:::::|::::::|
+      // | |｜／::::::::|::::::|
+
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8080/challenger/create/${widget.uniqueToken}'),
+        Uri.parse('https://abehiroto.com:10443/challenger/create/${widget.uniqueToken}'),
+        // Uri.parse('http://localhost:8080/challenger/create/${widget.uniqueToken}'),
         headers: headers,
         body: jsonEncode({
           'nickname': _nicknameController.text,

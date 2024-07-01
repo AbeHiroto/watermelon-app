@@ -36,9 +36,16 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
       headers['Authorization'] = 'Bearer $jwtToken';
     }
 
+        // 　 　＿＿＿　　　／￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣
+        // 　／´∀｀;::::＼ ＜ おれの名はテレホマン。さすがにここは直さんといかんだろ。
+        // /　　　　/::::::::::|　 ＼＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+        // | ./|　　/:::::|::::::|
+        // | |｜／::::::::|::::::|
+
     try {
     final response = await http.post(
-      Uri.parse('http://localhost:8080/create'),
+      Uri.parse('https://abehiroto.com:10443/create'),
+      // Uri.parse('http://localhost:8080/create'),
       headers: headers,
       body: jsonEncode({
         'nickname': _nicknameController.text,

@@ -150,9 +150,16 @@ class HomeState with ChangeNotifier {
       return;
     }
 
+      // 　 　＿＿＿　　　／￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣
+      // 　／´∀｀;::::＼ ＜ おれの名はテレホマン。さすがにここは直さんといかんだろ。
+      // /　　　　/::::::::::|　 ＼＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+      // | ./|　　/:::::|::::::|
+      // | |｜／::::::::|::::::|
+
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:8080/home'), // ホスト名は環境ごとに設定
+        Uri.parse('https://abehiroto.com:10443/home'), // ホスト名は環境ごとに設定
+        // Uri.parse('http://localhost:8080/home'), // ホスト名は環境ごとに設定
         headers: {
           'Authorization': 'Bearer $jwtToken',
         },
