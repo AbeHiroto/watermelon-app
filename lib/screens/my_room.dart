@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'dart:html' as html;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -34,7 +35,7 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
 
     final response = await http.get(
       Uri.parse('https://abehiroto.com:10443/room/info'),
-      // Uri.parse('http://localhost:8080/room/info'),
+      //Uri.parse('http://localhost:8080/room/info'),
       headers: {
         'Authorization': 'Bearer $jwtToken',
       },
@@ -78,7 +79,7 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
 
     final response = await http.put(
       Uri.parse('https://abehiroto.com:10443/request/reply'),
-      // Uri.parse('http://localhost:8080/request/reply'),
+      //Uri.parse('http://localhost:8080/request/reply'),
       headers: {
         'Authorization': 'Bearer $jwtToken',
         'Content-Type': 'application/json',
@@ -93,7 +94,8 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('返信が成功しました'),
       ));
-      fetchRoomInfo(); // 状態を更新するために部屋の情報を再取得
+      html.window.location.reload(); //ブラウザのリロード
+      //fetchRoomInfo(); // 状態を更新するために部屋の情報を再取得
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('返信に失敗しました'),
@@ -139,7 +141,7 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
 
     final response = await http.delete(
       Uri.parse('https://abehiroto.com:10443/room'),
-      // Uri.parse('http://localhost:8080/room'),
+      //Uri.parse('http://localhost:8080/room'),
       headers: {
         'Authorization': 'Bearer $jwtToken',
       },
@@ -155,6 +157,8 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
         content: Text('ルームの削除に失敗しました'),
       ));
     }
+
+    html.window.location.reload(); //ブラウザのリロード
   }
 
   void _copyToClipboard(String text) {
@@ -332,7 +336,8 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
                                           print('Accepted button pressed');
                                           replyToChallenge(visitorId, 'accepted');
                                         },
-                                      ),                                      
+                                      ),
+                                      SizedBox(width: 20),                                      
                                       IconButton(
                                         icon: Icon(Icons.close),
                                         onPressed: () {

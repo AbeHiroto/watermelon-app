@@ -176,7 +176,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   Future<void> _connectWebSocket(String jwtToken, String sessionId) async {
     try {
       final url = 'wss://abehiroto.com/wss?token=$jwtToken&sessionID=$sessionId';
-      // final url = 'ws://localhost:8080/ws?token=$jwtToken&sessionID=$sessionId';
+      //final url = 'ws://localhost:8080/ws?token=$jwtToken&sessionID=$sessionId';
       if (kIsWeb) {
         channel = HtmlWebSocketChannel.connect(url);
       } else {
