@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'dart:html' as html;
 import 'dart:convert';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -45,7 +46,7 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
     try {
     final response = await http.post(
       Uri.parse('https://abehiroto.com:10443/create'),
-      // Uri.parse('http://localhost:8080/create'),
+      //Uri.parse('http://localhost:8080/create'),
       headers: headers,
       body: jsonEncode({
         'nickname': _nicknameController.text,
@@ -79,7 +80,9 @@ class _RoomCreateScreenState extends State<RoomCreateScreen> {
         content: Text('Successfully Generated URL'),
       ));
       // 成功したら自動的にホーム画面に遷移
-      Navigator.pushReplacementNamed(context, '/');
+      // 本番環境でうまく画面遷移されなかったため、ブラウザのリロードに変更
+      //Navigator.pushReplacementNamed(context, '/');
+      html.window.location.reload(); //ブラウザのリロード
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Failed to Generate URL. Status Code: ${response.statusCode}, Message: ${data['error']}'),

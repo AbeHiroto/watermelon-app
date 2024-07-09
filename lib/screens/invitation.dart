@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:html' as html;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class InviteScreen extends StatefulWidget {
@@ -37,6 +38,47 @@ class _InviteScreenState extends State<InviteScreen> {
     //   _isLoading = true;
     // });
 
+    // ここでユーザー情報を取得し、対戦申請がすでにあるかを確認する
+    final prefs = await SharedPreferences.getInstance();
+    final jwtToken = prefs.getString('jwtToken') ?? '';
+
+    // 　 　＿＿＿　　　／￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣
+    // 　／´∀｀;::::＼ ＜ おれの名はテレホマン。さすがにここは直さんといかんだろ。
+    // /　　　　/::::::::::|　 ＼＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+    // | ./|　　/:::::|::::::|
+    // | |｜／::::::::|::::::| 
+
+    if (jwtToken.isNotEmpty) {
+      final userInfoResponse = await http.get(
+        Uri.parse('https://abehiroto.com:10443/home'), // ユーザー情報を取得するエンドポイント
+        //Uri.parse('http://localhost:8080/home'), // ユーザー情報を取得するエンドポイント
+        headers: {'Authorization': 'Bearer $jwtToken'},
+      );
+
+      if (userInfoResponse.statusCode == 200) {
+        final userInfo = jsonDecode(userInfoResponse.body);
+        if (userInfo['hasRequest'] == true) {
+          // 対戦申請がすでにある場合はリダイレクト
+          //html.window.location.href = 'https://abehiroto.com/wmapp';
+          // VPS用
+          html.window.location.href = 'https://abehiroto.com/wmapp';
+          // // ローカルテスト用
+          // html.window.location.href = '/';
+          return;
+        }
+      } else {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Failed to fetch user info.'),
+        ));
+        return;
+      }
+    }
+
     // 　 　＿＿＿　　　／￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣
     // 　／´∀｀;::::＼ ＜ おれの名はテレホマン。さすがにここは直さんといかんだろ。
     // /　　　　/::::::::::|　 ＼＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
@@ -45,7 +87,7 @@ class _InviteScreenState extends State<InviteScreen> {
 
     final response = await http.get(
       Uri.parse('https://abehiroto.com:10443/play/${widget.uniqueToken}'),
-      // Uri.parse('http://localhost:8080/play/${widget.uniqueToken}'),
+      //Uri.parse('http://localhost:8080/play/${widget.uniqueToken}'),
     );
 
     if (response.statusCode == 200) {
@@ -113,7 +155,7 @@ class _InviteScreenState extends State<InviteScreen> {
     try {
       final response = await http.post(
         Uri.parse('https://abehiroto.com:10443/challenger/create/${widget.uniqueToken}'),
-        // Uri.parse('http://localhost:8080/challenger/create/${widget.uniqueToken}'),
+        //Uri.parse('http://localhost:8080/challenger/create/${widget.uniqueToken}'),
         headers: headers,
         body: jsonEncode({
           'nickname': _nicknameController.text,
@@ -137,8 +179,9 @@ class _InviteScreenState extends State<InviteScreen> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Request sent successfully'),
         ));
-        // 対戦申請後にホーム画面に遷移
-        Navigator.pushReplacementNamed(context, '/');
+        // 対戦申請後にホーム画面に遷移…ではなく画面遷移はfetchRoomInfo関数に任せてここは単にリロード
+        //Navigator.pushReplacementNamed(context, '/');
+        html.window.location.reload(); //ブラウザのリロード
       } else {
         setState(() {
           _isLoading = false;
