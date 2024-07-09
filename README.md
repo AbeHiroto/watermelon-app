@@ -2,7 +2,7 @@
 
 ![Game Logo](https://github.com/AbeHiroto/wmapp/blob/main/README_pic1.jpg)
 
-"Obsessed with Watermelon" is an two-player online Tic-Tac-Toe variant with a unique referee system. It also featuring easy matching system that requires no user registration. Built using Flutter for the front-end and Go for the back-end, this game offers a fun and engaging twist on the classic game. 
+"Obsessed with Watermelon" is a two-player online Tic-Tac-Toe variant with a unique referee system. It also featuring easy matching system that requires no user registration. Built using Flutter for the front-end and Go for the back-end, this game offers a fun and engaging twist on the classic game. 
 
 ![Screenshot1](https://github.com/AbeHiroto/wmapp/blob/main/README_pic2.jpg)
 
