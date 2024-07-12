@@ -106,6 +106,7 @@ class _MyAppState extends State<MyApp> {
       print('Invalid link format');
     }
   }
+
   // //本番環境ではパスセグメントの構造が異なるため上のように更新
   // void _handleDeepLink(String link) {
   //   print('Deep link received: $link');

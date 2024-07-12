@@ -56,14 +56,21 @@ class _InviteScreenState extends State<InviteScreen> {
         headers: {'Authorization': 'Bearer $jwtToken'},
       );
 
+      // 　 　＿＿＿　　　／￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣￣
+      // 　／´∀｀;::::＼ ＜ おれの名はテレホマン。さすがにここは直さんといかんだろ。
+      // /　　　　/::::::::::|　 ＼＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿
+      // | ./|　　/:::::|::::::|
+      // | |｜／::::::::|::::::| 
+
       if (userInfoResponse.statusCode == 200) {
         final userInfo = jsonDecode(userInfoResponse.body);
         if (userInfo['hasRequest'] == true) {
           // 対戦申請がすでにある場合はリダイレクト
+
           // VPS用
           html.window.location.href = 'https://abehiroto.com/wmapp';
 
-          // 以下解決につながらず
+          // 以下解決につながらず...ローカルでのテストはどれでもいい
           // // ローカルテスト用
           // html.window.location.href = '/';
           // 非同期でリダイレクトを実行

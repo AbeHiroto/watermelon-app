@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:confetti/confetti.dart' as confetti;
 
 class GameScreen extends StatefulWidget {
   const GameScreen({Key? key}) : super(key: key);
@@ -35,6 +36,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   late Animation<double> _bribeBackgroundScaleAnimation;
   late Animation<double> _accuseBackgroundScaleAnimation;
   // late Animation<double> _shakeAnimation;
+
+  //紙吹雪
+  late confetti.ConfettiController _confettiController;
 
   late String selectedBribeImage;
   late String selectedAccuseImage;
@@ -152,6 +156,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       parent: _accuseAnimationController,
       curve: Curves.easeIn,
     ));
+
+    _confettiController = confetti.ConfettiController(duration: const Duration(seconds: 50));
   }
 
   Future<void> _initializeSession() async {
@@ -213,6 +219,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     _accuseIdleController.dispose();
     _bribeAnimationController.dispose();
     _accuseAnimationController.dispose();
+    _confettiController.dispose();
     super.dispose();
   }
 
@@ -420,16 +427,20 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 
   void showGameResultDialog(String status, List<Map<String, dynamic>> players) {
-    // ユーザーIDに基づいて賄賂回数を設定
-  int userBribeCount = 0;
-  int opponentBribeCount = 0;
-  if (players[0]['id'] == userId) {
-    userBribeCount = bribeCounts[0];
-    opponentBribeCount = bribeCounts[1];
-  } else if (players[1]['id'] == userId) {
-    userBribeCount = bribeCounts[1];
-    opponentBribeCount = bribeCounts[0];
-  }
+    int userBribeCount = 0;
+    int opponentBribeCount = 0;
+    if (players[0]['id'] == userId) {
+      userBribeCount = bribeCounts[0];
+      opponentBribeCount = bribeCounts[1];
+    } else if (players[1]['id'] == userId) {
+      userBribeCount = bribeCounts[1];
+      opponentBribeCount = bribeCounts[0];
+    }
+
+    if (players.any((player) => player['id'] == userId && winnerNickName == player['nickName'])) {
+      _confettiController.play();
+    }
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -478,8 +489,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               Text("Bribe Counts:"),
               Text("You: $userBribeCount"),
               Text("Rival: $opponentBribeCount"),
-              // Text("You: ${bribeCounts[0]}"),
-              // Text("Rival: ${bribeCounts[1]}"),
             ],
           ),
           actions: <Widget>[
@@ -487,6 +496,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               child: Text("Close"),
               onPressed: () {
                 Navigator.of(context).pop();
+                _confettiController.stop(); // ダイアログを閉じたら紙吹雪を停止
               },
             ),
           ],
@@ -494,7 +504,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       },
     );
 
-    // Add the retry message to chat
     setState(() {
       if (status == "round1_finished" || status == "round2_finished") {
         chatMessages.insert(0, {
@@ -1044,6 +1053,28 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             ],
           ),
         ),
+        Align(
+          alignment: Alignment.topCenter, // 中央上部に配置
+          child: confetti.ConfettiWidget(
+            confettiController: _confettiController,
+            blastDirection: pi / 2, // 90度、つまり下向き
+            blastDirectionality: confetti.BlastDirectionality.explosive,
+            shouldLoop: false,
+            colors: const [
+              Colors.red,
+              Colors.blue,
+              Colors.green,
+              Colors.yellow,
+              Colors.orange,
+              Colors.purple,
+            ],
+            emissionFrequency: 0.02,
+            numberOfParticles: 10,
+            maxBlastForce: 20,
+            minBlastForce: 5,
+            gravity: 0.1,
+          ),
+        ), // 紙吹雪ウィジェット
       ],
     ),
   );
