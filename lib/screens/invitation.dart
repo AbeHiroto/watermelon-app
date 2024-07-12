@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
 import 'dart:html' as html;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -59,12 +60,19 @@ class _InviteScreenState extends State<InviteScreen> {
         final userInfo = jsonDecode(userInfoResponse.body);
         if (userInfo['hasRequest'] == true) {
           // 対戦申請がすでにある場合はリダイレクト
-          //html.window.location.href = 'https://abehiroto.com/wmapp';
           // VPS用
           html.window.location.href = 'https://abehiroto.com/wmapp';
+
+          // 以下解決につながらず
           // // ローカルテスト用
           // html.window.location.href = '/';
-          return;
+          // 非同期でリダイレクトを実行
+          // Future.delayed(Duration(milliseconds: 100), () {
+          //   html.window.location.href = '/';
+          // });
+          // await Future.delayed(Duration(milliseconds: 100));
+          //   html.window.location.href = '/';
+          // return;
         }
       } else {
         if (mounted) {
@@ -238,6 +246,45 @@ class _InviteScreenState extends State<InviteScreen> {
     );
   }
 
+  // InviteScreenの余白設定
+  Widget buildLayout(BuildContext context, Widget child) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double height = constraints.maxHeight;
+        double width = constraints.maxWidth;
+        bool needsHorizontalPadding = (width / height) > 0.60;
+        bool needsVerticalPadding = (height / width) > 1.8;
+
+        return Container(
+          decoration: needsHorizontalPadding
+              ? BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage("assets/backpattern.png"), // パターン画像
+                    fit: BoxFit.none, // オリジナルサイズのまま表示
+                    repeat: ImageRepeat.repeat, // 画像を繰り返して表示
+                  ),
+                )
+              : null,
+          child: Center(
+            child: AspectRatio(
+              aspectRatio: 0.60, // 縦横比を0.60に設定
+              child: Container(
+                color: Colors.white, // 背景の白色
+                margin: needsVerticalPadding
+                    ? const EdgeInsets.symmetric(vertical: 0.0)
+                    : EdgeInsets.zero,
+                padding: needsHorizontalPadding
+                    ? const EdgeInsets.symmetric(horizontal: 0.0)
+                    : EdgeInsets.zero,
+                child: child,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -278,63 +325,45 @@ class _InviteScreenState extends State<InviteScreen> {
           ),
         ],
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          double height = constraints.maxHeight;
-          double width = constraints.maxWidth;
-          bool needsHorizontalPadding = (width / height) > 0.60;
-          bool needsVerticalPadding = (height / width) > 1.8;
-
-          return Container(
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage("assets/invitation.png"),
+      body: buildLayout(
+        context,
+        Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset(
+                'assets/invitation.png', // 画面全体の背景画像
                 fit: BoxFit.cover,
               ),
             ),
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: 0.60, // 縦横比を0.60に設定
-                child: Container(
-                  color: Colors.white.withOpacity(0.0), // 背景の白色と透明度を設定
-                  margin: needsVerticalPadding
-                      ? const EdgeInsets.symmetric(vertical: 20.0)
-                      : EdgeInsets.zero,
-                  padding: needsHorizontalPadding
-                      ? const EdgeInsets.symmetric(horizontal: 20.0)
-                      : EdgeInsets.zero,
-                  child: _isLoading
-                      ? Center(child: CircularProgressIndicator())
-                      : Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              SizedBox(height: 20),
-                              TextField(
-                                controller: _nicknameController,
-                                decoration: InputDecoration(
-                                  labelText: 'Your Nickname',
-                                  border: OutlineInputBorder(),
-                                ),
-                              ),
-                              SizedBox(height: 20),
-                              ElevatedButton(
-                                onPressed: () => submitChallenge(context),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color.fromARGB(255, 0, 38, 70), // ボタンの背景色
-                                  foregroundColor: Colors.white, // 文字の色
-                                ),
-                                child: Text('Submit to $roomCreator'),
-                              ),
-                            ],
+            _isLoading
+                ? Center(child: CircularProgressIndicator())
+                : Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(height: 100),
+                        TextField(
+                          controller: _nicknameController,
+                          decoration: InputDecoration(
+                            labelText: 'Your Nickname',
+                            border: OutlineInputBorder(),
                           ),
                         ),
-                ),
-              ),
-            ),
-          );
-        },
+                        SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () => submitChallenge(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(255, 0, 38, 70), // ボタンの背景色
+                            foregroundColor: Colors.white, // 文字の色
+                          ),
+                          child: Text('Submit to $roomCreator'),
+                        ),
+                      ],
+                    ),
+                  ),
+          ],
+        ),
       ),
     );
   }

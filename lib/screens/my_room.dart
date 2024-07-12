@@ -238,7 +238,6 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
             );
           },
         ),
-        // title: Text('Invitate Your Friend'),
         actions: [
           IconButton(
             icon: Icon(Icons.warning_amber_outlined),
@@ -299,6 +298,7 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
                                                     _copyToClipboard("https://abehiroto.com/wmapp/play/${roomData!['uniqueToken']}");
                                                   },
                                                 ),
+                                                SizedBox(width: 20),
                                                 IconButton(
                                                   icon: Icon(Icons.delete),
                                                   onPressed: showDeleteConfirmationDialog, // 確認ダイアログを表示
@@ -316,6 +316,39 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
                           ),
                         ),
                         Divider(), // 水平線
+                        roomData!['challengers'].isNotEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: CustomPaint(
+                                  painter: SpeechBubblePainter(),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Text(
+                                      'Here is the List of applications',
+                                      style: TextStyle(
+                                        fontSize: 18.0,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            : Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: CustomPaint(
+                                  painter: SpeechBubblePainter(),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Text(
+                                      'Have your friends access this URL to play!',
+                                      style: TextStyle(
+                                        fontSize: 18.0,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
                         Expanded(
                           child: ListView.builder(
                             itemCount: (roomData!['challengers'] as List).length,
@@ -323,10 +356,18 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
                               final challenger = roomData!['challengers'][index];
                               final visitorId = challenger['visitorId'] as int;
                               return Container(
-                                color: Colors.white, // 背景色を白に設定
+                                color: Colors.white.withOpacity(0.7), // 半透明の背景色を設定
                                 margin: EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0), // マージンを追加
                                 child: ListTile(
-                                  title: Text(challenger['challengerNickname']),
+                                  title: Row(
+                                    children: [
+                                      Container(
+                                        color: Colors.white, // ニックネームの背景色を白に設定
+                                        padding: EdgeInsets.all(4.0), // 内側の余白を追加
+                                        child: Text(challenger['challengerNickname']),
+                                      ),
+                                    ],
+                                  ),
                                   trailing: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
@@ -337,7 +378,7 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
                                           replyToChallenge(visitorId, 'accepted');
                                         },
                                       ),
-                                      SizedBox(width: 20),                                      
+                                      SizedBox(width: 48),
                                       IconButton(
                                         icon: Icon(Icons.close),
                                         onPressed: () {
@@ -358,4 +399,61 @@ class _MyRoomScreenState extends State<MyRoomScreen> {
       ),
     );
   }
+
+  Widget _buildSpeechBubble(String text) {
+    return CustomPaint(
+      painter: SpeechBubblePainter(),
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 18.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
 }
+
+class SpeechBubblePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    var paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    var path = Path()
+      ..moveTo(size.width * 0.1, 0)
+      ..lineTo(size.width * 0.9, 0)
+      ..quadraticBezierTo(size.width, 0, size.width, size.height * 0.1)
+      ..lineTo(size.width, size.height * 0.8)
+      ..quadraticBezierTo(size.width, size.height, size.width * 0.8, size.height)
+      ..lineTo(size.width * 0.2, size.height)
+      ..quadraticBezierTo(0, size.height, 0, size.height * 0.8)
+      ..lineTo(0, size.height * 0.1)
+      ..quadraticBezierTo(0, 0, size.width * 0.1, 0)
+      ..close();
+
+    var tailPath = Path()
+      ..moveTo(size.width * 0.5, size.height)
+      ..lineTo(size.width * 0.45, size.height + 10)
+      ..lineTo(size.width * 0.55, size.height)
+      ..close();
+
+    path.addPath(tailPath, Offset.zero);
+
+    // 影を描画
+    canvas.drawShadow(path, Colors.black.withOpacity(0.5), 4.0, true);
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return false;
+  }
+}
+
+

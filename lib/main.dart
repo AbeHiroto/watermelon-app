@@ -23,8 +23,8 @@ void main() {
       return Container(
         alignment: Alignment.center,
         child: Text(
-          'Something went wrong!',
-          style: TextStyle(color: const Color.fromARGB(255, 221, 130, 123)),
+          'Please wait a moment...',
+          style: TextStyle(color: Colors.white),
         ),
       );
     }

@@ -113,6 +113,23 @@ class _MyRequestScreenState extends State<MyRequestScreen> {
     );
   }
 
+  Widget _buildSpeechBubble(String text) {
+    return CustomPaint(
+      painter: SpeechBubblePainter(color: Colors.white),
+      child: Container(
+        padding: const EdgeInsets.all(16.0),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 18.0,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -146,7 +163,6 @@ class _MyRequestScreenState extends State<MyRequestScreen> {
             );
           },
         ),
-        // title: Text('Requesting a match'),
         actions: [
           IconButton(
             icon: Icon(Icons.warning_amber_outlined),
@@ -154,51 +170,103 @@ class _MyRequestScreenState extends State<MyRequestScreen> {
           ),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage("assets/my_request.png"),
-            fit: BoxFit.cover,
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/my_request.png', // 背景画像のパス
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              FutureBuilder<List<dynamic>>(
-                future: _requestInfo,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
-                  } else if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  } else {
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        return ListTile(
-                          title: Text('Waiting for ${snapshot.data![index]['roomCreator']}...'),
-                          trailing: Text(snapshot.data![index]['status']),
-                        );
-                      },
-                    );
-                  }
-                },
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
+          Align(
+            alignment: Alignment.topCenter,
+            child: Container(
+              color: Color.fromARGB(255, 0, 18, 46), // ネイビー背景
+              width: double.infinity,
+              padding: EdgeInsets.symmetric(vertical: 16.0),
+              child: TextButton(
                 onPressed: disableMyRequest,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red, // Background color
-                  foregroundColor: Colors.white, // Text color
+                child: Text(
+                  'Disable Request',
+                  style: TextStyle(
+                    color: Colors.white, // 白文字
+                    fontSize: 18.0,
+                  ),
                 ),
-                child: Text('Disable My Request'),
               ),
-            ],
+            ),
           ),
-        ),
+          FutureBuilder<List<dynamic>>(
+            future: _requestInfo,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else {
+                final pendingRequest = snapshot.data!.firstWhere(
+                    (request) => request['status'] == 'pending',
+                    orElse: () => null);
+
+                if (pendingRequest == null) {
+                  return Center(child: Text('No pending requests'));
+                } else {
+                  return Align(
+                    alignment: Alignment(0.0, -0.2), // 中央より少し上に配置
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: _buildSpeechBubble(
+                          'Waiting for ${pendingRequest['roomCreator']}...'),
+                    ),
+                  );
+                }
+              }
+            },
+          ),
+        ],
       ),
     );
+  }
+}
+
+class SpeechBubblePainter extends CustomPainter {
+  final Color color;
+
+  SpeechBubblePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    var paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    var path = Path()
+      ..moveTo(size.width * 0.05, 0) // Start at the top-left corner with a small inset for the curve
+      ..lineTo(0, size.height * 0.05)
+      ..quadraticBezierTo(0, 0, size.width * 0.05, 0) // Top-left corner curve
+      ..lineTo(size.width * 0.95, 0)
+      ..quadraticBezierTo(size.width, 0, size.width, size.height * 0.05) // Top-right corner curve
+      ..lineTo(size.width, size.height * 0.95)
+      ..quadraticBezierTo(size.width, size.height, size.width * 0.95, size.height) // Bottom-right corner curve
+      ..lineTo(size.width * 0.05, size.height)
+      ..quadraticBezierTo(0, size.height, 0, size.height * 0.95) // Bottom-left corner curve
+      ..lineTo(0, size.height * 0.05)
+      ..quadraticBezierTo(0, 0, size.width * 0.05, 0) // Top-left corner curve
+      ..close();
+
+    // 吹き出しの尻尾を追加
+    path.moveTo(size.width * 0.7, size.height);
+    path.lineTo(size.width * 0.45, size.height + 10);
+    path.lineTo(size.width * 0.55, size.height);
+
+    // 影を描画
+    canvas.drawShadow(path, Colors.black.withOpacity(0.5), 4.0, true);
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) {
+    return false;
   }
 }
